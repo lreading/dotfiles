@@ -22,6 +22,9 @@ function copy_dot_files() {
 
     mkdir -p ~/.config/
     cp -r ./nvim ~/.config/nvim
+
+    mkdir -p ~/.config/autostart
+    cp ./conky.desktop ~/.config/autostart/conky.desktop
 }
 
 function install_apt_packages() {
