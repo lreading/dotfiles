@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Borrowed from https://stackoverflow.com/a/1885534
-read -p "Running this will remove existing configs and overwrite them with the dotfiles in this repo.  Are you sure you want to continue?" -n 1 -r
+read -p "Running this will remove existing configs and overwrite them with the dotfiles in this repo.  Are you sure you want to continue? [Y/n] " -n 1 -r
 echo
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     [[ "$0" = "$BASH_SOURCE" ]] && exit 1 || return 1
