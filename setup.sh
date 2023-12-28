@@ -39,7 +39,13 @@ function install_neovim() {
     sudo mv nvim.appimage /usr/local/bin/nvim
 }
 
+function install_packer() {
+    git clone --depth 1 https://github.com/wbthomason/packer.nvim \
+        ~/.local/share/nvim/site/pack/packer/start/packer.nvim
+}
+
 copy_dot_files
 install_apt_packages
 install_neovim
+install_packer
 
