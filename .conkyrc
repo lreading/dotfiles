@@ -95,12 +95,11 @@ $alignr Hover - K
 $alignr Rename - <leader>vrn
 $alignr References - <leader>vrr
 $alignr Workspace Symbol - <leadver>vws
-$alignr Signature Help - <C-h>
 $alignr Code Actions - <leader>vca
 $alignr Go to Next - [d
 $alignr Go to Previous - ]d
-${color cyan}$alignr Custom
+${color cyan}$alignr Other
 ${color white}$alignr Move Up (Visual, Highlighted) - K
 $alignr Move Down (Visual, Highlighted) - J
-
+$alignr Go Back - <C-o>
 ]]
