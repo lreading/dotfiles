@@ -85,13 +85,14 @@ $alignr Grep - <leader>ps
 $alignr ${color cyan}Harpoon
 ${color white}$alignr Add - <leader>a
 $alignr Remove - <leader>d
-$alignr Previous - <C-h>
-$alignr Next - <C-l>
+$alignr Previous - <C-j>
+$alignr Next - <C-k>
 $alignr ${color cyan}Undotree
 ${color white}$alignr Toggle - <leader>u
 $alignr ${color cyan}LSP
 ${color white}$alignr Goto Definition - gd
 $alignr Hover - K
+$alignr Definition <C-h>
 $alignr Rename - <leader>vrn
 $alignr References - <leader>vrr
 $alignr Workspace Symbol - <leadver>vws
