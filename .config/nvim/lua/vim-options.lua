@@ -13,3 +13,7 @@ vim.keymap.set("n", "<c-j>", ":wincmd j<CR>")
 vim.keymap.set("n", "<c-k>", ":wincmd k<CR>")
 vim.keymap.set("n", "<c-l>", ":wincmd l<CR>")
 
+-- I always forget how to copy/paste to the system register..
+vim.keymap.set("v", "<leader>y", '"+y')
+vim.keymap.set({"v", "n"}, "<leader>p", '"+p')
+
