@@ -215,6 +215,7 @@ exec spotify
 exec vivaldi-stable
 exec discord
 exec compton
+exec --no-startup-id i3-msg "workspace \"$ws3\"; exec gnome-terminal"
 
 set $bg-color 	         #2f343f
 set $inactive-bg-color   #2f343f
