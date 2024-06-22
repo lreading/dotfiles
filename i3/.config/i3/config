@@ -137,12 +137,12 @@ bindsym $mod+Shift+x exec i3lock --color "$bg-color"
 # We use variables to avoid repeating the names in multiple places.
 set $ws10 "10 Browser   "
 set $ws9 "9 Slack  "
-set $ws8 "8"
-set $ws7 "7"
+set $ws8 "8 Firefox  "
+set $ws7 "7 Zoom   "
 set $ws6 "6"
 set $ws5 "5"
 set $ws4 "4"
-set $ws3 "3 Terminal   "
+set $ws3 "3"
 set $ws2 "2 Discord  "
 set $ws1 "1 Spotify   "
 
@@ -154,7 +154,7 @@ workspace $ws7 output DP-4
 workspace $ws6 output DP-4
 workspace $ws5 output DP-4
 workspace $ws4 output DP-4
-workspace $ws3 output HDMI-0
+workspace $ws3 output DP-4
 workspace $ws2 output HDMI-0
 workspace $ws1 output HDMI-0
 
@@ -163,6 +163,8 @@ assign [class="Vivaldi-stable"] $ws10
 assign [class="Slack"] $ws9
 assign [class="discord"] $ws2
 assign [class="Spotify"] $ws1
+assign [class="firefox"] $ws8
+assign [class="zoom"] $ws7
 
 # switch to workspace
 bindsym $mod+1 workspace $ws1
@@ -225,11 +227,19 @@ bindsym $mod+r mode "resize"
 exec --no-startup-id numlockx on
 exec_always --no-startup-id sleep 2 && feh --bg-fill ~/Pictures/tux.png
 
+# Disable screen saver, DPMS, and screen blanking
+exec --no-startup-id xset s off
+exec --no-startup-id xset -dpms
+exec --no-startup-id xset s noblank
+exec --no-startup-id xset s 0 0
+
 exec spotify 
 exec vivaldi-stable
 exec discord
 exec compton
 exec slack
+exec zoom
+exec firefox
 exec --no-startup-id flameshot
 
 set $bg-color 	         #2f343f
