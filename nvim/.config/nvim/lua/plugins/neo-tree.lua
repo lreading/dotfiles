@@ -22,9 +22,23 @@ return {
               ["%"] = "add",
             },
           },
+          hijack_netrw_behavior = "disabled",
+          use_libuv_file_watcher = true,
         },
+        auto_open = false,
+        auto_close = true,
       })
+
+      local function disable_auto_open()
+        vim.cmd([[
+          augroup NeoTreeAutoOpen
+            autocmd!
+            autocmd BufEnter * if &buftype == '' | silent! NeoTreeClose | endif
+          augroup END
+        ]])
+      end
+
+      disable_auto_open()
     end
   }
 }
-

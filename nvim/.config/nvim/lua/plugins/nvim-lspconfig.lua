@@ -17,6 +17,19 @@ return {
       config.pyright.setup({
         capabilities = capabilities
       })
+      config.eslint.setup({
+        capabilities = capabilities,
+        settings = {
+          packageManager = 'pnpm',
+        },
+        on_attach = function(client)
+          vim.api.nvim_create_autocmd("BufWritePre", "*.js,*.jsx,*.ts,*.tsx,*.vue", function()
+            client.request("eslint/eslintAutofix", {
+              textDocument = vim.lsp.util.make_text_document_params()
+            })
+          end)
+        end
+      })
       vim.keymap.set("n", "<leader>gr", vim.lsp.buf.rename, {})
       vim.keymap.set("n", "K", vim.lsp.buf.hover, {})
       vim.keymap.set("n", "<leader>gd", vim.lsp.buf.definition, {})
