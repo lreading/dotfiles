@@ -24,3 +24,6 @@ vim.keymap.set('v', '<A-k>', ":m '<-2<CR>gv=gv", { noremap = true, silent = true
 -- Keep the cursor centered when scrolling
 vim.keymap.set("n", "<C-d>", "<C-d>zz", { noremap = true, silent = true })
 vim.keymap.set("n", "<C-u>", "<C-u>zz", { noremap = true, silent = true })
+
+-- Fix the current directory to the one opened with neovim (eg $ ~:  nvim ~/.config/nvim will have ~ as the cwd... not ideal)
+vim.cmd("autocmd VimEnter * silent! lcd %:p:h")
