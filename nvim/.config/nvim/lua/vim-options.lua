@@ -27,3 +27,6 @@ vim.keymap.set("n", "<C-u>", "<C-u>zz", { noremap = true, silent = true })
 
 -- Fix the current directory to the one opened with neovim (eg $ ~:  nvim ~/.config/nvim will have ~ as the cwd... not ideal)
 vim.cmd("autocmd VimEnter * silent! lcd %:p:h")
+
+-- The terminal mapping for getting into normal mode is a bit much
+vim.keymap.set("t", "<Esc>", "<C-\\><C-n>")
