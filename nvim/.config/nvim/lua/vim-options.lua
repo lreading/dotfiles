@@ -8,6 +8,7 @@ vim.opt.number = true
 vim.wo.relativenumber = true
 vim.keymap.set("n", "<leader>pv", ":Ex<CR>", { noremap = true, silent = true })
 
+-- Set up for tmux vim navigation
 vim.keymap.set("n", "<c-h>", ":wincmd h<CR>")
 vim.keymap.set("n", "<c-j>", ":wincmd j<CR>")
 vim.keymap.set("n", "<c-k>", ":wincmd k<CR>")
@@ -30,3 +31,10 @@ vim.cmd("autocmd VimEnter * silent! lcd %:p:h")
 
 -- The terminal mapping for getting into normal mode is a bit much
 vim.keymap.set("t", "<Esc>", "<C-\\><C-n>")
+
+-- Make the splits more like tmux so I don't have to remember as much
+vim.keymap.set("n", "<leader>%", ":vsplit<CR>", { noremap = true, silent = true })
+vim.keymap.set("n", "<leader>\"", ":split<CR>", { noremap = true, silent = true })
+
+-- More old habits die hard...
+vim.keymap.set("n", "<C-a>", "ggVG", { noremap = true, silent = true })
