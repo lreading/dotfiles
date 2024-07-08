@@ -231,6 +231,7 @@ exec --no-startup-id xset -dpms
 exec --no-startup-id xset s noblank
 exec --no-startup-id xset s 0 0
 
+exec --no-startup-id numlockx on
 exec spotify 
 exec vivaldi-stable
 exec discord
