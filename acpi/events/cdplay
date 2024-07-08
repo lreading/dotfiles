@@ -1,0 +1,3 @@
+event=cd/play
+action=/etc/acpi/events/acpi_handler.sh cd/play
+
