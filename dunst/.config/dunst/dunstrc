@@ -1,0 +1,8 @@
+# https://geekoverdose.wordpress.com/2019/08/01/i3-window-manager-selectively-make-any-notification-urgent-urgency-flag-to-highlight-the-workspace/
+
+[slack] # a name for the filter: this is just used to identify what we are doing here
+    appname = "Slack" # this is the application name, see below
+    summary = "*" # this is the filter criterion applied to the message, see below
+    # urgency = critical # those attributes could be used to set details of the message in the script called below
+    # format = "" # could be used to alter the popup text, see below
+    script = ~/bin/dunst-urgent-notification.sh # this is the script that is called, see below
