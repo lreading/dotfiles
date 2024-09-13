@@ -41,6 +41,9 @@ return {
       config.dockerls.setup({
         capabilities = capabilities,
       })
+      config.volar.setup({
+        capabilities = capabilities,
+      })
 
       vim.keymap.set("n", "<leader>gr", vim.lsp.buf.rename, {})
       vim.keymap.set("n", "K", vim.lsp.buf.hover, {})
