@@ -11,7 +11,7 @@ return {
       config.html.setup({
         capabilities = capabilities,
       })
-      config.ts_ls.setup({
+      config.tsserver.setup({
         capabilities = capabilities,
         on_attach = function(client)
           client.server_capabilities.document_formatting = false
