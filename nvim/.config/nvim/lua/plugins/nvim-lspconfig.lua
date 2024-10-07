@@ -43,6 +43,7 @@ return {
       })
       config.volar.setup({
         capabilities = capabilities,
+        filetypes = { 'typescript', 'javascript', 'javascriptreact', 'typescriptreact', 'vue', 'json' },
       })
 
       vim.keymap.set("n", "<leader>gr", vim.lsp.buf.rename, {})
