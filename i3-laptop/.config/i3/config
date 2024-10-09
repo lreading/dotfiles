@@ -213,7 +213,7 @@ exec --no-startup-id numlockx on
 exec_always --no-startup-id sleep 2 && feh --bg-fill ~/Pictures/tux.png
 
 exec spotify 
-exec vivaldi.vivaldi-stable
+exec vivaldi
 exec discord
 exec compton
 exec --no-startup-id i3-msg "workspace \"$ws2\"; exec gnome-terminal"
