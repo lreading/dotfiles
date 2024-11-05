@@ -43,7 +43,18 @@ return {
       })
       config.volar.setup({
         capabilities = capabilities,
-        filetypes = { 'typescript', 'javascript', 'javascriptreact', 'typescriptreact', 'vue', 'json' },
+        filetypes = { "typescript", "javascript", "javascriptreact", "typescriptreact", "vue", "json" },
+      })
+
+      config.solargraph.setup({
+        cmd = { "solargraph", "stdio" },
+        filetypes = { "ruby" },
+        root_dir = require("lspconfig.util").root_pattern("Gemfile", ".git"),
+        settings = {
+          solargraph = {
+            diagnostics = true,
+          },
+        },
       })
 
       vim.keymap.set("n", "<leader>gr", vim.lsp.buf.rename, {})
