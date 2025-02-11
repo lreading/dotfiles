@@ -2,6 +2,7 @@ vim.g.python3_host_prog = vim.fn.expand('~/.config/nvim/.venv/bin/python')
 vim.g.ruby_host_prog = '/usr/bin/ruby'
 
 require("vim-options")
+require("zoom")
 
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not (vim.uv or vim.loop).fs_stat(lazypath) then
