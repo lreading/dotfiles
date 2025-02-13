@@ -57,6 +57,18 @@ return {
         },
       })
 
+      config.gopls.setup({
+        cmd = { "gopls" },
+        filetypes = { "go", "gomod", "gowork", "gotmpl" },
+        root_dir = config.util.root_pattern("go.work", "go.mod", ".git"),
+        settings = {
+          gopls = {
+            usePlaceholders = true, -- Enables placeholders in function signatures
+            completeUnimported = true, -- Auto-imports packages
+            staticcheck = true, -- Enable static analysis
+          },
+        },
+      })
       vim.keymap.set("n", "<leader>gr", vim.lsp.buf.rename, {})
       vim.keymap.set("n", "K", vim.lsp.buf.hover, {})
       vim.keymap.set("n", "<leader>gd", vim.lsp.buf.definition, {})
