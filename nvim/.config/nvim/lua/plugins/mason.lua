@@ -13,6 +13,7 @@ return {
           "black",
           "rubocop",
           "isort",
+          "gopls",
         },
         auto_update = true,
         run_on_start = true,
