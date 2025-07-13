@@ -65,7 +65,7 @@ return {
           gopls = {
             usePlaceholders = true, -- Enables placeholders in function signatures
             completeUnimported = true, -- Auto-imports packages
-            staticcheck = true, -- Enable static analysis
+            staticcheck = true,  -- Enable static analysis
           },
         },
       })
@@ -74,6 +74,23 @@ return {
       vim.keymap.set("n", "<leader>gd", vim.lsp.buf.definition, {})
       vim.keymap.set("n", "<C-gk>", vim.lsp.buf.signature_help, {})
       vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, {})
+
+      vim.lsp.handlers["textDocument/hover"] = function(_, result, ctx, config)
+        if not (result and result.contents) then
+          return
+        end
+
+        local markdown_lines = vim.lsp.util.convert_input_to_markdown_lines(result.contents)
+        if vim.tbl_isempty(markdown_lines) then
+          return
+        end
+
+        config = config or {}
+        config.border = "rounded"
+        config.width = 80
+        config.height = math.min(#markdown_lines, 20) -- Dynamically adjust height
+        vim.lsp.util.open_floating_preview(markdown_lines, "markdown", config)
+      end
     end,
   },
 }
