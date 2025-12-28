@@ -9,8 +9,13 @@ return {
 
       cmp.setup({
         window = {
-          completion = cmp.config.window.bordered(),
-          documentation = cmp.config.window.bordered(),
+          completion = cmp.config.window.bordered({
+            max_height = 12,
+          }),
+          documentation = cmp.config.window.bordered({
+            max_width  = 60,   -- prevent docs from eating half the screen
+            max_height = 20,
+          }),
         },
         mapping = cmp.mapping.preset.insert({
           ["<C-b>"] = cmp.mapping.scroll_docs(-4),
@@ -20,6 +25,11 @@ return {
           ["<CR>"] = cmp.mapping.confirm({ select = false }),
           ["<C-Enter>"] = cmp.mapping.confirm({ select = true }),
         }),
+        formatting = {
+          -- only show kind + name; hide the extra "menu" column that tends
+          -- to include long type info and blow out the width
+          fields = { "kind", "abbr" },
+        },
         sources = cmp.config.sources({
           { name = "nvim_lsp" },
         }, {
