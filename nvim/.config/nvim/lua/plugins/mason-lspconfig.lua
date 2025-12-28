@@ -14,7 +14,7 @@ return {
 					"jsonls",
 					"yamlls",
 					"dockerls",
-					"rust-analyzer",
+					"rust_analyzer",
 				},
 				automatic_installation = true,
 			})
