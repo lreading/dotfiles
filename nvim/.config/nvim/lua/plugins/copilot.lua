@@ -11,7 +11,7 @@ return {
 				enabled = true,
 				auto_trigger = true,
 				debounce = 75,
-				-- IMPORTANT: disable built-in accept key
+				-- IMPORTANT: we handle the accept key ourselves via Super Tab
 				keymap = {
 					accept = false,
 					accept_word = false,
@@ -21,11 +21,20 @@ return {
 					dismiss = "<C-]>",
 				},
 			},
+			-- Turn down noisy "copilot is not enabled" warnings, if they still happen?
+			logger = {
+				-- still log to file if you ever want to debug
+				-- file_log_level = vim.log.levels.OFF,
+				-- print_log_level = vim.log.levels.ERROR,
+				trace_lsp = "off",
+				trace_lsp_progress = false,
+				log_lsp_messages = false,
+			},
 		},
 		config = function(_, opts)
 			require("copilot").setup(opts)
 
-			-- "Super Tab": accept Copilot suggestion if visible, otherwise send a normal <Tab>
+			-- Super Tab: accept suggestion if visible, otherwise behave like normal <Tab>
 			_G.copilot_super_tab = function()
 				local ok, suggestion = pcall(require, "copilot.suggestion")
 				if ok and suggestion.is_visible() then
@@ -33,7 +42,7 @@ return {
 					return ""
 				end
 
-				-- fallback: behave like a normal Tab
+				-- fallback: normal Tab
 				return vim.api.nvim_replace_termcodes("<Tab>", true, false, true)
 			end
 
