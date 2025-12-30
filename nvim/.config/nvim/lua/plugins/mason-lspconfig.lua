@@ -1,34 +1,36 @@
 return {
-  {
-    "williamboman/mason-lspconfig.nvim",
-    config = function()
-      require("mason-lspconfig").setup({
-        ensure_installed = {
-          "lua_ls",
-          "ts_ls",
-          "pyright",
-          "html",
-          "eslint",
-          "intelephense",
-          "bashls",
-          "jsonls",
-          "yamlls",
-          "dockerls",
-          "rust_analyzer",
-        },
-        automatic_installation = true,
-      })
-      require("mason-lspconfig").setup({
-        function(server_name)
-          if server_name == "tsserver" then
-            server_name = "ts_ls"
-          end
-          local capabilities = require("cmp_nvim_lsp").default_capabilities()
-          require("lspconfig")[server_name].setup({
-            capabilities = capabilities,
-          })
-        end,
-      })
-    end,
-  },
+	{
+		"williamboman/mason.nvim",
+		config = function()
+			require("mason").setup()
+		end,
+	},
+	{
+		"williamboman/mason-lspconfig.nvim",
+		dependencies = {
+			"williamboman/mason.nvim",
+			"neovim/nvim-lspconfig",
+		},
+		config = function()
+			require("mason-lspconfig").setup({
+				ensure_installed = {
+					"lua_ls",
+					"ts_ls",
+					"pyright",
+					"html",
+					"eslint",
+					"intelephense",
+					"bashls",
+					"jsonls",
+					"yamlls",
+					"dockerls",
+					"rust_analyzer",
+				},
+				-- install servers that are configured elsewhere
+				automatic_installation = true,
+				-- IMPORTANT: let nvim-lspconfig.lua call vim.lsp.enable
+				automatic_enable = false,
+			})
+		end,
+	},
 }
