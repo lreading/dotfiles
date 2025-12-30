@@ -13,7 +13,7 @@ return {
             max_height = 12,
           }),
           documentation = cmp.config.window.bordered({
-            max_width  = 60,   -- prevent docs from eating half the screen
+            max_width = 60, -- prevent docs from eating half the screen
             max_height = 20,
           }),
         },

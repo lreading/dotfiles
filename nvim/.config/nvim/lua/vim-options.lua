@@ -19,8 +19,8 @@ vim.keymap.set("v", "<leader>Y", '"+y')
 vim.keymap.set({ "v", "n" }, "<leader>P", '"+p')
 
 -- Move selected lines in visual mode
-vim.keymap.set('v', '<A-j>', ":m '>+1<CR>gv=gv", { noremap = true, silent = true })
-vim.keymap.set('v', '<A-k>', ":m '<-2<CR>gv=gv", { noremap = true, silent = true })
+vim.keymap.set("v", "<A-j>", ":m '>+1<CR>gv=gv", { noremap = true, silent = true })
+vim.keymap.set("v", "<A-k>", ":m '<-2<CR>gv=gv", { noremap = true, silent = true })
 
 -- Keep the cursor centered when scrolling
 vim.keymap.set("n", "<C-d>", "<C-d>zz", { noremap = true, silent = true })
@@ -34,7 +34,7 @@ vim.keymap.set("t", "<Esc>", "<C-\\><C-n>")
 
 -- Make the splits more like tmux so I don't have to remember as much
 vim.keymap.set("n", "<leader>%", ":vsplit<CR>", { noremap = true, silent = true })
-vim.keymap.set("n", "<leader>\"", ":split<CR>", { noremap = true, silent = true })
+vim.keymap.set("n", '<leader>"', ":split<CR>", { noremap = true, silent = true })
 
 -- More old habits die hard...
 vim.keymap.set("n", "<C-a>", "ggVG", { noremap = true, silent = true })
@@ -60,4 +60,3 @@ vim.keymap.set("n", "<C-c>", function()
   local esc = vim.api.nvim_replace_termcodes("<Esc>", true, false, true)
   vim.api.nvim_feedkeys(esc, "n", false)
 end, { noremap = true, silent = true })
-

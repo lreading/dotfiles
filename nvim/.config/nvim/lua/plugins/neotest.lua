@@ -45,6 +45,5 @@ return {
         neotest.run.run({ strategy = "dap" })
       end, { desc = "Debug test" })
     end,
-  }
+  },
 }
-

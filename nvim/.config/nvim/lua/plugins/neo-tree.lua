@@ -14,7 +14,7 @@ return {
         filesystem = {
           -- make .git hidden but always show .github
           filtered_items = {
-            visible = false,         -- start with hidden items actually hidden
+            visible = false, -- start with hidden items actually hidden
             show_hidden_count = true,
             hide_dotfiles = true,
             hide_gitignored = false,
@@ -28,8 +28,8 @@ return {
 
           window = {
             mappings = {
-              ["<cr>"] = "conditional_enter",  -- 👈 our custom behavior
-              ["H"] = "toggle_hidden",         -- still keep a manual toggle
+              ["<cr>"] = "conditional_enter",
+              ["H"] = "toggle_hidden",
               ["t"] = "open_tabnew",
               ["d"] = "add_directory",
               ["D"] = "delete",
@@ -77,4 +77,3 @@ return {
     end,
   },
 }
-

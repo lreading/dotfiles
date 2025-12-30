@@ -17,12 +17,11 @@ return {
         },
         sections = {
           lualine_c = {
-            {"filename", path = 1, symbols = {modified = "[+]", readonly = "[-]"}},
-            {unsaved_buffers_indicator},
+            { "filename",               path = 1, symbols = { modified = "[+]", readonly = "[-]" } },
+            { unsaved_buffers_indicator },
           },
         },
       })
-    end
-  }
+    end,
+  },
 }
-

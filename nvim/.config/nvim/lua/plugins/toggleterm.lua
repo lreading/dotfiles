@@ -5,8 +5,8 @@ return {
       require("toggleterm").setup({
         open_mapping = [[<C-t>]],
         direction = "float",
-        size = 50
+        size = 50,
       })
-    end
-  }
+    end,
+  },
 }
