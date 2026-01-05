@@ -1,6 +1,8 @@
 vim.g.python3_host_prog = vim.fn.expand("~/.local/share/pipx/venvs/pynvim/bin/python3")
 vim.g.ruby_host_prog = "/usr/bin/ruby"
 vim.g.loaded_perl_provider = 0
+vim.opt.shell = "/bin/bash"
+vim.opt.shellcmdflag = "-lc"
 
 require("vim-options")
 require("zoom")
