@@ -65,15 +65,15 @@ return {
 			})
 
       -- Open Neo-tree on startup
-			vim.api.nvim_create_autocmd("VimEnter", {
-				callback = function()
-					require("neo-tree.command").execute({
-						source = "filesystem",
-						position = "left",
-						reveal = true,
-					})
-				end,
-			})
+			-- vim.api.nvim_create_autocmd("VimEnter", {
+			-- 	callback = function()
+			-- 		require("neo-tree.command").execute({
+			-- 			source = "filesystem",
+			-- 			position = "left",
+			-- 			reveal = true,
+			-- 		})
+			-- 	end,
+			-- })
 		end,
 	},
 }
