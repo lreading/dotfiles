@@ -39,7 +39,6 @@ return {
 					["<CR>"] = cmp.mapping.confirm({ select = false }),
 					["<C-Enter>"] = cmp.mapping.confirm({ select = true }),
 
-					-- ✅ TAB: accept minuet if visible, else behave normally
 					["<Tab>"] = cmp.mapping(function(fallback)
 						if minuet.action.is_visible() then
 							minuet.action.accept()
@@ -62,7 +61,6 @@ return {
 						fallback()
 					end, { "i", "s" }),
 
-					-- ✅ C-c: cancel minuet ONLY if visible
 					["<C-c>"] = cmp.mapping(function(fallback)
 						if minuet.action.is_visible() then
 							minuet.action.dismiss()

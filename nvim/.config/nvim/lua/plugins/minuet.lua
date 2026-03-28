@@ -21,11 +21,9 @@ return {
 			virtualtext = {
 				enable = true,
 
-				-- FIX: must NOT be empty
 				auto_trigger_ft = { "*" },
 
 				keymap = {
-					-- keep these (documented defaults)
 					accept = "<M-CR>",
 					accept_line = "<M-S-CR>",
 					prev = "<M-[>",

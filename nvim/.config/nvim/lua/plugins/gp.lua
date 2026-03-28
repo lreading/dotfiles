@@ -6,9 +6,9 @@ return {
 				ollama = {
 					endpoint = "http://james.leoathome.com:11434/api/chat",
 				},
-        openai = {
-          disable = true,
-        },
+				openai = {
+					disable = true,
+				},
 			},
 
 			agents = {
@@ -21,7 +21,14 @@ return {
 						model = "localdev-chat-medium",
 						options = { temperature = 0 },
 					},
-					system_prompt = "You are a senior software engineer. Respond directly and concisely.",
+					system_prompt = [[
+Answer concisely and correctly.
+
+- Do not hallucinate or guess.
+- If unsure, say "I don't know".
+- Prefer minimal working solutions.
+- Ensure configs are syntactically valid.
+- Avoid filler or personality.]],
 				},
 				{
 					provider = "ollama",
@@ -32,7 +39,14 @@ return {
 						model = "localdev-chat-high",
 						options = { temperature = 0 },
 					},
-					system_prompt = "You are a senior software engineer. Respond directly and concisely.",
+					system_prompt = [[
+Answer concisely and correctly.
+
+- Do not hallucinate or guess.
+- If unsure, say "I don't know".
+- Prefer minimal working solutions.
+- Ensure configs are syntactically valid.
+- Avoid filler or personality.]],
 				},
 				{
 					provider = "ollama",
