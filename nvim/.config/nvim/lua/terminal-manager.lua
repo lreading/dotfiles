@@ -1,11 +1,13 @@
 local M = {}
 
 local api = vim.api
+local render
 
 local state = {
   buf = nil,
   win = nil,
   line_to_term = {},
+  timer = nil,
 }
 
 local ignored_commands = {
@@ -23,6 +25,30 @@ end
 
 local function panel_open()
   return state.win and api.nvim_win_is_valid(state.win)
+end
+
+local function stop_timer()
+  if state.timer then
+    state.timer:stop()
+    state.timer:close()
+    state.timer = nil
+  end
+end
+
+local function start_timer()
+  stop_timer()
+  state.timer = vim.uv.new_timer()
+  if not state.timer then
+    return
+  end
+
+  state.timer:start(0, 1000, vim.schedule_wrap(function()
+    if panel_open() then
+      render()
+    else
+      stop_timer()
+    end
+  end))
 end
 
 local function truncate(text, max_len)
@@ -56,15 +82,15 @@ local function running_task(term)
     return "idle"
   end
 
-  local output = vim.fn.system({ "ps", "-o", "state=,comm=,args=", "-t", tty })
+  local output = vim.fn.system({ "ps", "-o", "state=,pgid=,tpgid=,comm=,args=", "-t", tty })
   if vim.v.shell_error ~= 0 then
     return "idle"
   end
 
   local active = nil
   for line in output:gmatch("[^\r\n]+") do
-    local state_code, comm, args = line:match("^%s*(%S+)%s+(%S+)%s+(.*)$")
-    if state_code and comm and not ignored_commands[comm] and not state_code:match("^[TXZ]") then
+    local state_code, pgid, tpgid, comm, args = line:match("^%s*(%S+)%s+(%S+)%s+(%S+)%s+(%S+)%s+(.*)$")
+    if state_code and pgid == tpgid and comm and not ignored_commands[comm] and not state_code:match("^[TXZ]") then
       active = args ~= "" and args or comm
     end
   end
@@ -77,13 +103,13 @@ local function format_term(term)
   return string.format("%d. %-18s %s", term.id, truncate(name, 18), running_task(term))
 end
 
-local function render()
+render = function()
   if not (state.buf and api.nvim_buf_is_valid(state.buf)) then
     return
   end
 
   local lines = {
-    "<CR>/o open or focus   a add   r rename   d delete   R refresh   q close",
+    "<CR>/o open or focus   a add   r rename   d delete   q close",
     "",
   }
 
@@ -123,6 +149,7 @@ local function close_panel()
   if panel_open() then
     api.nvim_win_close(state.win, true)
   end
+  stop_timer()
   state.win = nil
   state.buf = nil
 end
@@ -222,7 +249,6 @@ local function open_panel()
 
   local opts = { buffer = state.buf, noremap = true, silent = true }
   vim.keymap.set("n", "q", close_panel, opts)
-  vim.keymap.set("n", "R", refresh, opts)
   vim.keymap.set("n", "<CR>", function() open_term(current_term()) end, opts)
   vim.keymap.set("n", "o", function() open_term(current_term()) end, opts)
   vim.keymap.set("n", "a", add_term, opts)
@@ -230,6 +256,7 @@ local function open_panel()
   vim.keymap.set("n", "d", delete_term, opts)
 
   render()
+  start_timer()
 end
 
 function M.toggle_panel()
