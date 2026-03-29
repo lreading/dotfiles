@@ -1,7 +1,10 @@
 return {
   {
     "folke/trouble.nvim",
-    opts = {}, -- for default options, refer to the configuration section for custom setup.
+    opts = {
+      open_no_results = true,
+      warn_no_results = false,
+    },
     cmd = "Trouble",
     keys = {
       {

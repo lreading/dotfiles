@@ -11,14 +11,36 @@ return {
         return ""
       end
 
+      local function filename_component()
+        if vim.bo.filetype == "terminal-manager" then
+          return "Terminal Manager"
+        end
+
+        if vim.bo.filetype == "trouble" then
+          return "Trouble"
+        end
+
+        local filename = require("lualine.components.filename"):new({
+          path = 1,
+          symbols = { modified = "[+]", readonly = "[-]" },
+        })
+
+        return filename:get_status()
+      end
+
       require("lualine").setup({
         options = {
           theme = "dracula",
         },
         sections = {
           lualine_c = {
-            { "filename",               path = 1, symbols = { modified = "[+]", readonly = "[-]" } },
+            { filename_component },
             { unsaved_buffers_indicator },
+          },
+        },
+        inactive_sections = {
+          lualine_c = {
+            { filename_component },
           },
         },
       })
