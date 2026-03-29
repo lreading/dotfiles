@@ -1,0 +1,60 @@
+{
+  // Optional project-local overrides for neotest.
+  // Place this content in a repo-local .neoconf.json file when the generic
+  // defaults are not enough.
+  "neotest": {
+    // Run tests from a subproject instead of the repository root.
+    // Relative paths are resolved from the repo root that contains
+    // .neoconf.json or .git.
+    "cwd": "app",
+
+    // Optional path-based overrides for monorepos.
+    // "match" uses a Lua pattern against the file path relative to the repo root.
+    "overrides": [
+      {
+        "match": "^app/",
+        "cwd": "app",
+        "playwright": {
+          // Use a specific Playwright config for this subtree.
+          "config": "playwright.config.ts"
+        }
+      },
+      {
+        "match": "^app/e2e%-visual/",
+        "cwd": "app",
+        "playwright": {
+          "config": "playwright.visual.config.ts"
+        }
+      },
+      {
+        "match": "^cli/",
+        "cwd": "cli"
+      }
+    ],
+
+    "vitest": {
+      "enabled": true
+    },
+    "jest": {
+      "enabled": true
+    },
+    "mocha": {
+      "enabled": true
+    },
+    "playwright": {
+      "enabled": true,
+      // You can also describe multiple configs explicitly instead of relying on
+      // automatic discovery from playwright*.config.* files.
+      "configs": [
+        {
+          "config": "playwright.config.ts",
+          "test_dir": "e2e"
+        },
+        {
+          "config": "playwright.visual.config.ts",
+          "test_dir": "e2e-visual"
+        }
+      ]
+    }
+  }
+}
