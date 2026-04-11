@@ -1,0 +1,1 @@
+-- Marks yaml.helm-values as a known filetype for LSP health checks.

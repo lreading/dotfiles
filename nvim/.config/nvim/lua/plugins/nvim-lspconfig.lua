@@ -6,6 +6,24 @@ return {
 			capabilities.general = capabilities.general or {}
 			capabilities.general.positionEncodings = { "utf-16" }
 
+			vim.filetype.add({
+				extension = {
+					gotmpl = "gotmpl",
+				},
+				filename = {
+					[".gitlab-ci.yml"] = "yaml.gitlab",
+					[".gitlab-ci.yaml"] = "yaml.gitlab",
+					["go.work"] = "gowork",
+					["docker-compose.yml"] = "yaml.docker-compose",
+					["docker-compose.yaml"] = "yaml.docker-compose",
+					["compose.yml"] = "yaml.docker-compose",
+					["compose.yaml"] = "yaml.docker-compose",
+				},
+				pattern = {
+					[".*values.*%.ya?ml"] = "yaml.helm-values",
+				},
+			})
+
 			-- No extra config needed, use the defaults
 			local simple_servers = {
 				"lua_ls",

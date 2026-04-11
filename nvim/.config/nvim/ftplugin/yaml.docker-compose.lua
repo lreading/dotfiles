@@ -1,0 +1,1 @@
+-- Marks yaml.docker-compose as a known filetype for LSP health checks.
