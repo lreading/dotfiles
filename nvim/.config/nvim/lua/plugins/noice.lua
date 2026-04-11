@@ -11,6 +11,15 @@ return {
       top_down = false,
     })
     require("noice").setup({
+      routes = {
+        {
+          filter = {
+            event = "msg_show",
+            find = "Type  :qa!  and press <Enter> to abandon all changes and exit Nvim",
+          },
+          opts = { skip = true },
+        },
+      },
       lsp = {
         override = {
           ["vim.lsp.util.convert_input_to_markdown_lines"] = true,
