@@ -1,7 +1,7 @@
 /* ----------- 💫 https://github.com/LinuxBeginnings 💫 -------- */
 /* swaync colors - wallust from waybar.css */
 
-@import '../../.config/waybar/wallust/colors-waybar.css';
+@import url("file:///home/leo/.config/waybar/wallust/colors-waybar.css");
 
 @define-color noti-border-color #2fbf71;
 @define-color noti-bg rgba(0, 0, 0, 0.8);
@@ -60,7 +60,6 @@
 
 .notification-action {
     border: 1px solid @noti-border-color;
-    border-top: none;
     border-radius: 10px;
 }
 
