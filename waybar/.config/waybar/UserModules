@@ -1,0 +1,74 @@
+//* ---- 💫 https://github.com/JaKooLit 💫 ---- *//
+/* Waybar Modules Extras */
+
+/* This is where you can add Extra Modules you wish. copy.sh will try to restore*/
+/* this file along with the unique configs and styles. */
+/* IMPORTANT, be mindful with , or ". else waybar will not start */
+
+{
+"temperature": {
+    "interval": 10,
+    "tooltip": true,
+    "hwmon-path": [
+        "/sys/class/hwmon/hwmon1/temp1_input",
+        "/sys/class/thermal/thermal_zone0/temp"
+    ],
+    "critical-threshold": 82,
+    "format-critical": "{temperatureC}°C {icon}",
+    "format": "{temperatureC}°C {icon}",
+    "format-icons": [
+        "󰈸"
+    ],
+    "on-click-right": "$HOME/.config/hypr/scripts/WaybarScripts.sh --nvtop"
+},
+
+"custom/weather": {
+    "format": "{}",
+    "format-alt": "{alt}: {}",
+    "format-alt-click": "click",
+    "interval": 3600,
+    "return-type": "json",
+    "exec": "WEATHER_UNITS=imperial $HOME/.config/hypr/UserScripts/WeatherWrap.sh",
+    "tooltip": true
+},
+
+"hyprland/workspaces#rw": {
+    "disable-scroll": true,
+    "all-outputs": true,
+    "warp-on-scroll": false,
+    "sort-by-number": true,
+    "show-special": false,
+    "on-click": "activate",
+    "on-scroll-up": "hyprctl dispatch workspace e+1",
+    "on-scroll-down": "hyprctl dispatch workspace e-1",
+    "persistent-workspaces": {
+        "*": 5
+    },
+    "format": "{icon} {windows}",
+    "format-window-separator": " ",
+    "window-rewrite-default": "󰖟 ",
+    "window-rewrite": {
+        "class<vivaldi-stable|Vivaldi-stable|vivaldi>": "󰖟 ",
+        "title<.*Vivaldi.*>": "󰖟 ",
+        "class<firefox|org.mozilla.firefox|librewolf|floorp|mercury-browser|[Cc]achy-browser>": " ",
+        "class<zen>": "󰰷 ",
+        "class<waterfox|waterfox-bin>": " ",
+        "class<microsoft-edge>": " ",
+        "class<Chromium|Thorium|[Cc]hrome>": " ",
+        "class<brave-browser>": "🦁 ",
+        "class<kitty|konsole|[Aa]lacritty>": " ",
+        "class<kitty-dropterm>": " ",
+        "class<com.mitchellh.ghostty>": " ",
+        "class<org.wezfurlong.wezterm>": " ",
+        "class<ferdium|Ferdium>": "󰍩 ",
+        "title<.*Discord.*>": " ",
+        "title<.*ChatGPT.*>": "󰚩 ",
+        "title<.*github.*>": " ",
+        "class<VSCode|code|code-url-handler|code-oss|codium|codium-url-handler|VSCodium>": "󰨞 ",
+        "class<emacs|Emacs>": " ",
+        "class<thunar|nemo|org.gnome.Nautilus>": "󰝰 ",
+        "title<^Wallpapers$>": " ",
+        "title<^Video Wallpapers$>": " "
+    }
+}
+}
