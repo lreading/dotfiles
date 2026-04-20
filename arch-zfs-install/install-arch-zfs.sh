@@ -1031,6 +1031,7 @@ write_autosnapshot_config() {
     printf 'POOL=zroot\n'
     printf 'CAPACITY_WARN=80\n'
     printf 'CAPACITY_CRITICAL=90\n'
+    printf 'PREPACMAN_KEEP=7\n'
     printf 'RECURSIVE_DEFAULT=%q\n' "$SNAPSHOT_USE_RECURSIVE_DEFAULT"
     printf 'declare -A SNAPSHOT_POLICY_DATASETS=(\n'
     printf '  ["default"]="zroot/ROOT:r zroot/home:r'
@@ -1193,9 +1194,79 @@ write_autosnapshot_timers() {
 }
 
 install_zfs_maintenance() {
-  mkdir -p "$TARGET/etc/zfs" "$TARGET/usr/local/sbin" "$TARGET/etc/systemd/system"
+  mkdir -p "$TARGET/etc/zfs" "$TARGET/usr/local/sbin" "$TARGET/etc/systemd/system" "$TARGET/etc/pacman.d/hooks"
 
   write_autosnapshot_config
+
+  cat > "$TARGET/usr/local/sbin/zfs-prepacman-snapshot" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+CONFIG=/etc/zfs/arch-autosnapshot.conf
+if [[ -r "$CONFIG" ]]; then
+  # shellcheck source=/dev/null
+  . "$CONFIG"
+fi
+
+POOL="${POOL:-zroot}"
+CAPACITY_WARN="${CAPACITY_WARN:-80}"
+CAPACITY_CRITICAL="${CAPACITY_CRITICAL:-90}"
+PREPACMAN_KEEP="${PREPACMAN_KEEP:-7}"
+
+if [[ ! "$PREPACMAN_KEEP" =~ ^[0-9]+$ ]]; then
+  PREPACMAN_KEEP=7
+elif ((PREPACMAN_KEEP < 1)); then
+  PREPACMAN_KEEP=1
+fi
+
+capacity="$(zpool list -H -o capacity "$POOL" | tr -d '%')"
+if [[ "$capacity" =~ ^[0-9]+$ ]]; then
+  if ((capacity >= CAPACITY_CRITICAL)); then
+    logger -p daemon.err -t zfs-prepacman-snapshot "pool ${POOL} is ${capacity}% full; creating pre-upgrade snapshot but capacity is critical"
+  elif ((capacity >= CAPACITY_WARN)); then
+    logger -p daemon.warning -t zfs-prepacman-snapshot "pool ${POOL} is ${capacity}% full"
+  fi
+fi
+
+snapshot_name="pre_update_$(date -u +%Y%m%dT%H%M%SZ)"
+if zfs list -H -t snapshot "${POOL}@${snapshot_name}" >/dev/null 2>&1; then
+  sleep 1
+  snapshot_name="pre_update_$(date -u +%Y%m%dT%H%M%SZ)"
+fi
+
+if [[ ! "$snapshot_name" =~ ^[A-Za-z0-9][A-Za-z0-9._:-]*$ ]]; then
+  echo "Invalid ZFS snapshot name generated: ${snapshot_name}" >&2
+  exit 65
+fi
+
+zfs snapshot -r "${POOL}@${snapshot_name}"
+
+mapfile -t snapshots < <(zfs list -H -t snapshot -o name -s creation -d 1 "$POOL" | grep -F "${POOL}@pre_update_" || true)
+excess=$((${#snapshots[@]} - PREPACMAN_KEEP))
+if ((excess > 0)); then
+  for ((i = 0; i < excess; i++)); do
+    if ! zfs destroy -r "${snapshots[$i]}"; then
+      logger -p daemon.warning -t zfs-prepacman-snapshot "created ${POOL}@${snapshot_name}, but failed to prune old snapshot ${snapshots[$i]}"
+    fi
+  done
+fi
+
+logger -p daemon.info -t zfs-prepacman-snapshot "created recursive snapshot ${POOL}@${snapshot_name}"
+EOF
+  chmod 0755 "$TARGET/usr/local/sbin/zfs-prepacman-snapshot"
+
+  cat > "$TARGET/etc/pacman.d/hooks/zfs-snapshot-pre.hook" <<'EOF'
+[Trigger]
+Operation = Upgrade
+Type = Package
+Target = *
+
+[Action]
+Description = Create recursive ZFS snapshot before package upgrades
+When = PreTransaction
+Exec = /usr/local/sbin/zfs-prepacman-snapshot
+AbortOnFail
+EOF
 
   cat > "$TARGET/usr/local/sbin/zfs-autosnapshot" <<'EOF'
 #!/usr/bin/env bash
