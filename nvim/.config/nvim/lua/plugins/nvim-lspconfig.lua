@@ -125,11 +125,11 @@ return {
 			})
 			vim.lsp.enable("rust_analyzer")
 
-			vim.keymap.set("n", "<leader>gr", vim.lsp.buf.rename, {})
-			vim.keymap.set("n", "K", vim.lsp.buf.hover, {})
-			vim.keymap.set("n", "<leader>gd", vim.lsp.buf.definition, {})
-			vim.keymap.set("n", "<C-gk>", vim.lsp.buf.signature_help, {})
-			vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, {})
+			vim.keymap.set("n", "<leader>gr", vim.lsp.buf.rename, { desc = "Rename symbol" })
+			vim.keymap.set("n", "K", vim.lsp.buf.hover, { desc = "Show hover documentation" })
+			vim.keymap.set("n", "<leader>gd", vim.lsp.buf.definition, { desc = "Go to definition" })
+			vim.keymap.set("n", "<C-gk>", vim.lsp.buf.signature_help, { desc = "Show signature help" })
+			vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, { desc = "Show code actions" })
 
 			vim.lsp.handlers["textDocument/hover"] = function(_, result, ctx, config)
 				if not (result and result.contents) then

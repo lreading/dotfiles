@@ -125,9 +125,9 @@ render = function()
     end
   end
 
-  api.nvim_buf_set_option(state.buf, "modifiable", true)
+  api.nvim_set_option_value("modifiable", true, { buf = state.buf })
   api.nvim_buf_set_lines(state.buf, 0, -1, false, lines)
-  api.nvim_buf_set_option(state.buf, "modifiable", false)
+  api.nvim_set_option_value("modifiable", false, { buf = state.buf })
 end
 
 local function refresh()
@@ -248,12 +248,12 @@ local function open_panel()
   vim.wo[state.win].winbar = ""
 
   local opts = { buffer = state.buf, noremap = true, silent = true }
-  vim.keymap.set("n", "q", close_panel, opts)
-  vim.keymap.set("n", "<CR>", function() open_term(current_term()) end, opts)
-  vim.keymap.set("n", "o", function() open_term(current_term()) end, opts)
-  vim.keymap.set("n", "a", add_term, opts)
-  vim.keymap.set("n", "r", rename_term, opts)
-  vim.keymap.set("n", "d", delete_term, opts)
+  vim.keymap.set("n", "q", close_panel, vim.tbl_extend("force", opts, { desc = "Close terminal manager" }))
+  vim.keymap.set("n", "<CR>", function() open_term(current_term()) end, vim.tbl_extend("force", opts, { desc = "Open selected terminal" }))
+  vim.keymap.set("n", "o", function() open_term(current_term()) end, vim.tbl_extend("force", opts, { desc = "Open selected terminal" }))
+  vim.keymap.set("n", "a", add_term, vim.tbl_extend("force", opts, { desc = "Add terminal" }))
+  vim.keymap.set("n", "r", rename_term, vim.tbl_extend("force", opts, { desc = "Rename terminal" }))
+  vim.keymap.set("n", "d", delete_term, vim.tbl_extend("force", opts, { desc = "Delete terminal" }))
 
   render()
   start_timer()

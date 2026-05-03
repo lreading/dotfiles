@@ -63,17 +63,17 @@ return {
 			-- Keymaps
 			vim.keymap.set("n", "<C-p>", function()
 				builtin.find_files({ find_command = get_find_command(), cwd = vim.fn.getcwd() })
-			end, {})
+			end, { desc = "Find files" })
 
-			vim.keymap.set("n", "<leader>fg", builtin.live_grep, {})
-			vim.keymap.set("n", "<leader>fb", builtin.buffers, {})
+			vim.keymap.set("n", "<leader>fg", builtin.live_grep, { desc = "Search text in project" })
+			vim.keymap.set("n", "<leader>fb", builtin.buffers, { desc = "Search open buffers" })
 			vim.keymap.set("n", "<leader>gg", function()
 				builtin.git_files({ cwd = vim.fn.getcwd() })
-			end, {})
+			end, { desc = "Find git-tracked files" })
 
 			vim.keymap.set("n", "<leader>fs", function()
 				builtin.live_grep({ search_dirs = { "src", "tests", "*" }, cwd = vim.fn.getcwd() })
-			end, {})
+			end, { desc = "Search text in source and tests" })
 
       local function show_keymaps()
 				builtin.keymaps({

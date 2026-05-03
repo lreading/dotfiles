@@ -7,12 +7,22 @@ return {
       local terminal_manager = require("terminal-manager")
 
       toggleterm.setup({
-        open_mapping = [[<C-t>]],
         direction = "float",
         size = 50,
       })
 
       terminal_manager.setup()
+
+      vim.keymap.set("n", "<C-t>", "<cmd>ToggleTerm<CR>", {
+        noremap = true,
+        silent = true,
+        desc = "Toggle floating terminal",
+      })
+      vim.keymap.set("t", "<C-t>", "<C-\\><C-n><cmd>ToggleTerm<CR>", {
+        noremap = true,
+        silent = true,
+        desc = "Toggle floating terminal",
+      })
 
       vim.keymap.set("n", "<leader>tm", terminal_manager.toggle_panel, {
         noremap = true,

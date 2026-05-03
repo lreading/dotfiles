@@ -8,7 +8,7 @@ return {
     config = function()
       local comments = require("todo-comments")
 
-      vim.keymap.set("n", "<leader>ft", ":TodoTelescope<CR>", { noremap = true, silent = true })
+      vim.keymap.set("n", "<leader>ft", ":TodoTelescope<CR>", { noremap = true, silent = true, desc = "Search todo comments" })
 
       -- vim.keymap.set("n", "<leader>tn", function()
       --   comments.jump_next()

@@ -24,6 +24,6 @@ function M.toggle_zoom()
 end
 
 -- Set keymap to <Leader>m
-vim.keymap.set("n", "<Leader>z", M.toggle_zoom, { noremap = true, silent = true })
+vim.keymap.set("n", "<Leader>z", M.toggle_zoom, { noremap = true, silent = true, desc = "Toggle current window zoom" })
 
 return M

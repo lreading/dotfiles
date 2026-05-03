@@ -29,7 +29,7 @@ return {
           null_ls.builtins.formatting.isort,
         },
       })
-      vim.keymap.set("n", "<leader>f", vim.lsp.buf.format, {})
+      vim.keymap.set("n", "<leader>f", vim.lsp.buf.format, { desc = "Format current buffer" })
     end,
   },
 }
