@@ -41,22 +41,22 @@ vim.keymap.set("n", "<C-a>", "ggVG", { noremap = true, silent = true, desc = "Se
 
 -- Helper: close all floating windows (LSP hover, etc.)
 local function close_floats()
-  local closed = false
-  for _, win in ipairs(vim.api.nvim_list_wins()) do
-    local cfg = vim.api.nvim_win_get_config(win)
-    if cfg.relative ~= "" then
-      vim.api.nvim_win_close(win, true)
-      closed = true
-    end
-  end
-  return closed
+	local closed = false
+	for _, win in ipairs(vim.api.nvim_list_wins()) do
+		local cfg = vim.api.nvim_win_get_config(win)
+		if cfg.relative ~= "" then
+			vim.api.nvim_win_close(win, true)
+			closed = true
+		end
+	end
+	return closed
 end
 
 -- In Normal mode, Ctrl-C closes floats and then behaves like Esc
 vim.keymap.set("n", "<C-c>", function()
-  close_floats()
+	close_floats()
 
-  -- Feed a real <Esc> so it behaves like pressing Escape
-  local esc = vim.api.nvim_replace_termcodes("<Esc>", true, false, true)
-  vim.api.nvim_feedkeys(esc, "n", false)
+	-- Feed a real <Esc> so it behaves like pressing Escape
+	local esc = vim.api.nvim_replace_termcodes("<Esc>", true, false, true)
+	vim.api.nvim_feedkeys(esc, "n", false)
 end, { noremap = true, silent = true, desc = "Close floats and send Escape" })

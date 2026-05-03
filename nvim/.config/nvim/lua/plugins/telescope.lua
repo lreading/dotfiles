@@ -75,12 +75,12 @@ return {
 				builtin.live_grep({ search_dirs = { "src", "tests", "*" }, cwd = vim.fn.getcwd() })
 			end, { desc = "Search text in source and tests" })
 
-      local function show_keymaps()
+			local function show_keymaps()
 				builtin.keymaps({
 					modes = { "n", "i", "v", "x", "s", "o", "t", "c" },
 					show_plug = false,
 				})
-      end
+			end
 
 			vim.keymap.set("n", "<leader>hk", show_keymaps, { desc = "Help: search keymaps" })
 			vim.keymap.set("n", "<leader>?", show_keymaps, { desc = "Help: search keymaps" })
@@ -92,7 +92,6 @@ return {
 			vim.keymap.set("n", "<leader>hc", builtin.commands, {
 				desc = "Help: search commands",
 			})
-
 		end,
 	},
 }
