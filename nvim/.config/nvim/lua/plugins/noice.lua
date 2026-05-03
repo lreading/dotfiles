@@ -8,6 +8,7 @@ return {
   config = function()
     require("notify").setup({
       background_colour = "#000000",
+      merge_duplicates = true,
       top_down = false,
     })
     require("noice").setup({
@@ -18,6 +19,19 @@ return {
             find = "Type  :qa!  and press <Enter> to abandon all changes and exit Nvim",
           },
           opts = { skip = true },
+        },
+        {
+          view = "notify",
+          filter = {
+            event = "msg_show",
+            kind = { "", "echo", "echomsg", "lua_print", "list_cmd" },
+            max_height = 19,
+          },
+          opts = {
+            merge = false,
+            replace = false,
+            title = "Messages",
+          },
         },
       },
       lsp = {
@@ -72,5 +86,17 @@ return {
         },
       },
     })
+
+    -- Let nvim-notify handle repeated command messages instead of Noice dropping them as duplicates.
+    local state = require("noice.ui.state")
+    local original_skip = state.skip
+    state.skip = function(event, kind, ...)
+      if event == "msg_show" and vim.tbl_contains({ "", "echo", "echomsg", "lua_print", "list_cmd" }, kind) then
+        state.set(event, kind, ...)
+        return false
+      end
+
+      return original_skip(event, kind, ...)
+    end
   end,
 }
