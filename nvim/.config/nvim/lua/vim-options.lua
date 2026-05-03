@@ -26,7 +26,8 @@ vim.keymap.set("v", "<A-k>", ":m '<-2<CR>gv=gv", { noremap = true, silent = true
 vim.keymap.set("n", "<C-d>", "<C-d>zz", { noremap = true, silent = true, desc = "Scroll down and center cursor" })
 vim.keymap.set("n", "<C-u>", "<C-u>zz", { noremap = true, silent = true, desc = "Scroll up and center cursor" })
 
--- Fix the current directory to the one opened with neovim (eg $ ~:  nvim ~/.config/nvim will have ~ as the cwd... not ideal)
+-- Fix the current directory to the one opened with neovim:
+--   eg $ ~:  nvim ~/.config/nvim will have ~ as the cwd... not ideal)
 vim.cmd("autocmd VimEnter * silent! lcd %:p:h")
 
 -- The terminal mapping for getting into normal mode is a bit much

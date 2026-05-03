@@ -131,7 +131,7 @@ return {
 			vim.keymap.set("n", "<C-gk>", vim.lsp.buf.signature_help, { desc = "Show signature help" })
 			vim.keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, { desc = "Show code actions" })
 
-			vim.lsp.handlers["textDocument/hover"] = function(_, result, ctx, config)
+			vim.lsp.handlers["textDocument/hover"] = function(_, result, _, config)
 				if not (result and result.contents) then
 					return
 				end

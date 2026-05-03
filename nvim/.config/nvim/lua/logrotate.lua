@@ -48,7 +48,7 @@ end
 -- Just being extra safe.  this SHOULDN'T get GC'd even if it were just a one-liner,
 -- but adding the local variables will force it to stay around until the nvim
 -- process exits.  Probably overly-paranoid here...
-local uv = vim.uv or vim.loop
-local log_timer = uv.new_timer()
+local log_timer = uv.new_timer() or {}
+
 -- Start without delay (at launch), and run once an hour thereafter.
 log_timer:start(0, 1000 * 60 * 60, vim.schedule_wrap(rotate_lsp_log))
