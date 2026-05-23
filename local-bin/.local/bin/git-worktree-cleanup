@@ -1,0 +1,124 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+
+echo_stderr() {
+  echo "$@" >&2
+}
+
+
+print_help() {
+  cat <<'EOF'
+Usage:
+  git-worktree-cleanup
+  git-worktree-cleanup --dry-run
+
+Lists linked git worktrees for the current repository, detects branches that
+have already been merged into the repo's default branch, and removes those
+worktrees.
+EOF
+}
+
+
+default_branch_ref() {
+  local ref
+
+  if ref=$(git symbolic-ref --quiet refs/remotes/origin/HEAD 2>/dev/null); then
+    echo "${ref#refs/remotes/origin/}"
+    return 0
+  fi
+
+  if git show-ref --verify --quiet refs/heads/main; then
+    echo "main"
+    return 0
+  fi
+
+  if git show-ref --verify --quiet refs/heads/master; then
+    echo "master"
+    return 0
+  fi
+
+  git branch --show-current
+}
+
+
+branch_is_merged() {
+  local branch_name="$1"
+  local base_branch="$2"
+
+  git merge-base --is-ancestor "$branch_name" "$base_branch"
+}
+
+
+remove_merged_worktrees() {
+  local dry_run="$1"
+  local current_worktree
+  local base_branch
+  local worktree_path=""
+  local branch_ref=""
+  local branch_name=""
+
+  current_worktree=$(git rev-parse --show-toplevel)
+  base_branch=$(default_branch_ref)
+
+  echo_stderr "Using base branch: $base_branch"
+
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    if [[ -z "$line" ]]; then
+      if [[ -n "$worktree_path" && -n "$branch_name" ]]; then
+        if [[ "$worktree_path" == "$current_worktree" ]]; then
+          echo_stderr "Skipping current worktree: $worktree_path"
+        elif [[ "$branch_name" == "$base_branch" ]]; then
+          echo_stderr "Skipping base branch worktree: $branch_name"
+        elif branch_is_merged "$branch_name" "$base_branch"; then
+          if [[ "$dry_run" == "true" ]]; then
+            echo_stderr "Would remove merged worktree: $worktree_path ($branch_name)"
+          else
+            echo_stderr "Removing merged worktree: $worktree_path ($branch_name)"
+            git worktree remove "$worktree_path"
+          fi
+        else
+          echo_stderr "Keeping unmerged worktree: $worktree_path ($branch_name)"
+        fi
+      fi
+
+      worktree_path=""
+      branch_ref=""
+      branch_name=""
+      continue
+    fi
+
+    case "$line" in
+      worktree\ *)
+        worktree_path="${line#worktree }"
+        ;;
+      branch\ refs/heads/*)
+        branch_ref="${line#branch }"
+        branch_name="${branch_ref#refs/heads/}"
+        ;;
+    esac
+  done < <(git worktree list --porcelain && printf '\n')
+}
+
+
+main() {
+  local dry_run="false"
+
+  if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+    print_help
+    exit 0
+  fi
+
+  if [[ "${1:-}" == "--dry-run" ]]; then
+    dry_run="true"
+  elif [[ $# -gt 0 ]]; then
+    print_help
+    exit 1
+  fi
+
+  remove_merged_worktrees "$dry_run"
+}
+
+
+main "$@"

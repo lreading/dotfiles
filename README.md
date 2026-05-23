@@ -24,6 +24,7 @@ The related configs in this repo are user-owned configs, not a complete fork or 
   - `~/.config/waybar/style/[Dark] Latte-Wallust combined.css`
 - `swaync`: notification config and style.
 - `kitty`, `nvim`, `tmux`: app-specific config.
+- `local-bin`: user scripts in `~/.local/bin`, including git worktree helpers.
 
 The repo-level `.stowrc` targets `~`, so stow commands can be run from the repo root without passing `--target`.
 
@@ -40,7 +41,7 @@ Run the upstream installers according to those repos. After the upstream config 
 
 ```bash
 cd ~/dev/dotfiles
-stow --adopt hypr waybar swaync kitty nvim tmux
+stow --adopt hypr waybar swaync kitty nvim tmux local-bin
 git restore .
 ```
 
@@ -48,7 +49,7 @@ git restore .
 
 ```bash
 cd ~/dev/dotfiles
-stow hypr waybar swaync kitty nvim tmux
+stow hypr waybar swaync kitty nvim tmux local-bin
 ```
 
 After stowing the Hyprland layer, apply the local post-upstream preferences (or just reboot):
