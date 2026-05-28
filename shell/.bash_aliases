@@ -66,3 +66,5 @@ git-worktree() {
 
   cd "$dir"
 }
+
+alias kill-ferdium="kill -9 $(ps aux | grep ferdium | head -n 1 | awk '{ print $2 }')"
