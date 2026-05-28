@@ -51,6 +51,18 @@ branch_is_merged() {
 }
 
 
+remove_worktree() {
+  local worktree_path="$1"
+
+  if git worktree remove "$worktree_path"; then
+    return 0
+  fi
+
+  echo_stderr "Could not remove worktree, continuing: $worktree_path"
+  return 0
+}
+
+
 remove_merged_worktrees() {
   local dry_run="$1"
   local current_worktree
@@ -76,7 +88,7 @@ remove_merged_worktrees() {
             echo_stderr "Would remove merged worktree: $worktree_path ($branch_name)"
           else
             echo_stderr "Removing merged worktree: $worktree_path ($branch_name)"
-            git worktree remove "$worktree_path"
+            remove_worktree "$worktree_path"
           fi
         else
           echo_stderr "Keeping unmerged worktree: $worktree_path ($branch_name)"
