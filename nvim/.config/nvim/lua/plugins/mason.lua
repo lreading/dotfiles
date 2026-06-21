@@ -11,9 +11,10 @@ return {
 			require("mason-tool-installer").setup({
 				ensure_installed = {
 					"black",
-					"rubocop",
 					"isort",
 					"gopls",
+					"prettier",
+					"stylua",
 				},
 				auto_update = true,
 				run_on_start = true,

@@ -29,7 +29,6 @@ return {
 				"lua_ls",
 				"html",
 				"pyright",
-				"intelephense",
 				"bashls",
 				"jsonls",
 				"yamlls",
@@ -43,8 +42,8 @@ return {
 				vim.lsp.enable(name)
 			end
 
-			local vue_language_server_path =
-				vim.fn.expand("~/.local/share/pnpm/global/5/node_modules/@vue/language-server")
+			local vue_language_server_path = vim.fn.stdpath("data")
+				.. "/mason/packages/vue-language-server/node_modules/@vue/language-server"
 
 			local tsserver_filetypes = {
 				"typescript",
@@ -91,19 +90,6 @@ return {
 				},
 			})
 			vim.lsp.enable("eslint")
-
-			vim.lsp.config("solargraph", {
-				capabilities = capabilities,
-				cmd = { "solargraph", "stdio" },
-				filetypes = { "ruby" },
-				root_markers = { "Gemfile", ".git" },
-				settings = {
-					solargraph = {
-						diagnostics = true,
-					},
-				},
-			})
-			vim.lsp.enable("solargraph")
 
 			vim.lsp.config("gopls", {
 				capabilities = capabilities,

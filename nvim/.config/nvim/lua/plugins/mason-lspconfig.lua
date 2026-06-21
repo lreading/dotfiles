@@ -19,12 +19,12 @@ return {
 					"pyright",
 					"html",
 					"eslint",
-					"intelephense",
 					"bashls",
 					"jsonls",
 					"yamlls",
 					"dockerls",
 					"rust_analyzer",
+					"vue_ls",
 				},
 				-- install servers that are configured elsewhere
 				automatic_installation = true,
