@@ -1,0 +1,56 @@
+[devices]
+# Prefer /dev/serial/by-path paths. The two modules can expose the same serial ID.
+left = "/dev/serial/by-path/pci-0000:c2:00.3-usb-0:3.3:1.0"
+right = "/dev/serial/by-path/pci-0000:c2:00.3-usb-0:4.2:1.0"
+# Current Framework module ordering on this laptop is physically reversed.
+swap = true
+
+[display]
+fps = 5
+min_brightness = 4
+# LED brightness is based on screen brightness * screen_brightness_scale_percent,
+# then clamped to min/max.
+max_brightness = 42
+screen_brightness_scale_percent = 45
+battery_dim_percent = 70
+alert_brightness_boost = 10
+mock = false
+
+[layout]
+# Available widgets:
+# blank, cpu, ram, bat, bell, audio-bars, audio-wave, audio-mirror,
+# negative-bars, penguin, penguin-on-notify, bell-or-bars, bell-or-penguin,
+# dynamic-status
+top_left = "cpu"
+bottom_left = "ram"
+top_right = "bat"
+bottom_right = "penguin-on-notify"
+# Optional full-panel overrides replace top/bottom widgets when present:
+# full_left = "penguin"
+# full_right = "audio-mirror"
+
+[animations]
+# Penguin options: reference, waddle, chubby, tiny, flipper, skater, jumper, party,
+# sleepy, side-eye, round
+penguin = "reference"
+# Notification options: bell-flash, spark, ping, ring, badge
+notification = "bell-flash"
+
+[battery]
+low_battery_percent = 35
+off_battery_percent = 20
+
+[notifications]
+swaync_client = "swaync-client"
+poll_seconds = 5
+pulse_millis = 5000
+
+[tmux]
+enabled = true
+poll_millis = 1500
+codex_pulse_millis = 4500
+
+[audio]
+enabled = true
+cava = "cava"
+active_decay_millis = 1200
