@@ -106,12 +106,18 @@ pub fn spawn_swaync_watcher(tx: Sender<Event>, swaync_client: String, poll_secon
                 continue;
             };
 
+            let mut last_count = swaync_count(&swaync_client).ok();
             for line in BufReader::new(stdout).lines() {
                 match line {
                     Ok(line) => {
                         debug!("swaync event: {line}");
-                        let _ = tx.send(Event::NotificationPulse);
-                        if let Ok(count) = swaync_count(&swaync_client) {
+                        let count = parse_swaync_subscribe_count(&line)
+                            .or_else(|| swaync_count(&swaync_client).ok());
+                        if let Some(count) = count {
+                            if last_count.is_some_and(|previous| count > previous) {
+                                let _ = tx.send(Event::NotificationPulse);
+                            }
+                            last_count = Some(count);
                             let _ = tx.send(Event::NotificationCount(count));
                         }
                     }
@@ -139,6 +145,17 @@ pub fn swaync_count(swaync_client: &str) -> Result<u32> {
     Ok(text.trim().parse::<u32>().unwrap_or(0))
 }
 
+fn parse_swaync_subscribe_count(line: &str) -> Option<u32> {
+    let (_, after_key) = line.split_once("\"count\"")?;
+    let (_, after_colon) = after_key.split_once(':')?;
+    let digits = after_colon
+        .trim_start()
+        .chars()
+        .take_while(|ch| ch.is_ascii_digit())
+        .collect::<String>();
+    digits.parse().ok()
+}
+
 pub fn runtime_socket_path() -> PathBuf {
     runtime_dir().join("framework-led-daemon.sock")
 }
@@ -147,4 +164,23 @@ fn runtime_dir() -> PathBuf {
     std::env::var_os("XDG_RUNTIME_DIR")
         .map(PathBuf::from)
         .unwrap_or_else(|| PathBuf::from("/tmp"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parses_swaync_subscribe_count() {
+        assert_eq!(
+            parse_swaync_subscribe_count(
+                r#"{ "count": 12, "dnd": false, "visible": true, "inhibited": false }"#
+            ),
+            Some(12)
+        );
+        assert_eq!(
+            parse_swaync_subscribe_count(r#"["notification", "x"]"#),
+            None
+        );
+    }
 }
