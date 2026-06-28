@@ -1,0 +1,117 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly EXTERNAL_DESC="ASUSTek COMPUTER INC ASUS XG49V 0x00020793"
+readonly EXTERNAL_SELECTOR="desc:${EXTERNAL_DESC}"
+readonly EXTERNAL_MODE="3840x1080@143.855"
+readonly EXTERNAL_SCALE="1"
+readonly INTERNAL_OUTPUT="eDP-1"
+readonly INTERNAL_MODE="preferred"
+readonly INTERNAL_SCALE="1.33"
+
+inhibitor_pid=""
+last_state=""
+
+cleanup() {
+  if [[ -n "${inhibitor_pid}" ]] && kill -0 "${inhibitor_pid}" 2>/dev/null; then
+    kill "${inhibitor_pid}" 2>/dev/null || true
+  fi
+}
+
+terminate() {
+  cleanup
+  exit 0
+}
+
+trap cleanup EXIT
+trap terminate INT TERM
+
+ac_online() {
+  local supply type online
+
+  for supply in /sys/class/power_supply/*; do
+    [[ -e "${supply}/type" ]] || continue
+    type="$(<"${supply}/type")"
+    case "${type}" in
+      Mains|USB|USB_C|USB_PD)
+        online="$(cat "${supply}/online" 2>/dev/null || printf '0')"
+        [[ "${online}" == "1" ]] && return 0
+        ;;
+    esac
+  done
+
+  return 1
+}
+
+external_connected() {
+  hyprctl monitors all -j 2>/dev/null \
+    | jq -e --arg desc "${EXTERNAL_DESC}" '.[] | select(.description == $desc and (.disabled | not))' >/dev/null
+}
+
+external_name() {
+  hyprctl monitors all -j 2>/dev/null \
+    | jq -r --arg desc "${EXTERNAL_DESC}" '.[] | select(.description == $desc and (.disabled | not)) | .name' \
+    | head -n 1
+}
+
+start_lid_inhibitor() {
+  if [[ -n "${inhibitor_pid}" ]] && kill -0 "${inhibitor_pid}" 2>/dev/null; then
+    return
+  fi
+
+  systemd-inhibit \
+    --what=handle-lid-switch \
+    --mode=block \
+    --who=work-laptop-dockd \
+    --why="Docked on external display and AC power" \
+    sleep infinity &
+  inhibitor_pid="$!"
+}
+
+stop_lid_inhibitor() {
+  if [[ -n "${inhibitor_pid}" ]] && kill -0 "${inhibitor_pid}" 2>/dev/null; then
+    kill "${inhibitor_pid}" 2>/dev/null || true
+    wait "${inhibitor_pid}" 2>/dev/null || true
+  fi
+  inhibitor_pid=""
+}
+
+apply_docked() {
+  local output
+
+  hyprctl keyword monitor "${EXTERNAL_SELECTOR},${EXTERNAL_MODE},0x0,${EXTERNAL_SCALE}" >/dev/null 2>&1 || true
+  hyprctl keyword monitor "${INTERNAL_OUTPUT},disable" >/dev/null 2>&1 || true
+
+  output="$(external_name)"
+  if [[ -n "${output}" ]]; then
+    for workspace in {1..10}; do
+      hyprctl dispatch moveworkspacetomonitor "${workspace} ${output}" >/dev/null 2>&1 || true
+    done
+    hyprctl dispatch focusmonitor "${output}" >/dev/null 2>&1 || true
+  fi
+
+  start_lid_inhibitor
+}
+
+apply_undocked() {
+  stop_lid_inhibitor
+  hyprctl keyword monitor "${INTERNAL_OUTPUT},${INTERNAL_MODE},auto,${INTERNAL_SCALE}" >/dev/null 2>&1 || true
+}
+
+while true; do
+  if external_connected && ac_online; then
+    state="docked"
+  else
+    state="undocked"
+  fi
+
+  if [[ "${state}" != "${last_state}" ]]; then
+    case "${state}" in
+      docked) apply_docked ;;
+      undocked) apply_undocked ;;
+    esac
+    last_state="${state}"
+  fi
+
+  sleep 3
+done

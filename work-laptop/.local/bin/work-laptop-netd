@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+last_state=""
+
+ethernet_has_carrier() {
+  local device type
+
+  while IFS=: read -r device type; do
+    [[ "${type}" == "ethernet" ]] || continue
+    [[ -r "/sys/class/net/${device}/carrier" ]] || continue
+    [[ "$(cat "/sys/class/net/${device}/carrier" 2>/dev/null || printf '0')" == "1" ]] && return 0
+  done < <(nmcli -t -f DEVICE,TYPE device status 2>/dev/null)
+
+  return 1
+}
+
+wifi_radio() {
+  nmcli radio wifi 2>/dev/null | tr '[:upper:]' '[:lower:]'
+}
+
+while true; do
+  if ethernet_has_carrier; then
+    state="ethernet"
+  else
+    state="wifi"
+  fi
+
+  if [[ "${state}" != "${last_state}" ]]; then
+    case "${state}" in
+      ethernet)
+        [[ "$(wifi_radio)" == "disabled" ]] || nmcli radio wifi off >/dev/null 2>&1 || true
+        ;;
+      wifi)
+        [[ "$(wifi_radio)" == "enabled" ]] || nmcli radio wifi on >/dev/null 2>&1 || true
+        ;;
+    esac
+    last_state="${state}"
+  fi
+
+  sleep 3
+done
