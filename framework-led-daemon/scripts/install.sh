@@ -18,11 +18,12 @@ if [[ ! -f "${config_dir}/config.toml" ]]; then
 fi
 
 systemctl --user daemon-reload
-systemctl --user enable --now framework-led-daemon.service
+systemctl --user enable framework-led-daemon.service
+systemctl --user restart framework-led-daemon.service
 loginctl enable-linger "${USER}" 2>/dev/null || {
   echo "warn: could not enable linger; service will start at login, not boot."
   echo "      run manually if needed: loginctl enable-linger ${USER}"
 }
 
-echo "Installed framework-led-daemon."
+echo "Installed/updated framework-led-daemon."
 echo "Run diagnostics with: framework-led-daemon doctor"
