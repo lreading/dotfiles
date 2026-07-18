@@ -17,6 +17,14 @@ COPY_PATHS=(
 )
 
 
+THREAT_DRAGON_COPY_PATHS=(
+  ".editorconfig"
+  ".neoconf.json"
+  "td.server/jsconfig.json"
+  "td.server/test/.eslintrc.js"
+)
+
+
 echo_stderr() {
   echo "$@" >&2
 }
@@ -82,15 +90,46 @@ create_git_worktree() {
 }
 
 
+is_threat_dragon_repo() {
+  local repo_root_dir="$1"
+  local remote_url
+  local normalized_remote
+
+  remote_url="$(git -C "$repo_root_dir" remote get-url origin 2>/dev/null)" || return 1
+  normalized_remote="${remote_url,,}"
+  normalized_remote="${normalized_remote#git@github.com:}"
+  normalized_remote="${normalized_remote#https://github.com/}"
+  normalized_remote="${normalized_remote#ssh://git@github.com/}"
+  normalized_remote="${normalized_remote%.git}"
+
+  [[ "$normalized_remote" == "owasp/threat-dragon" ]]
+}
+
+
 copy_untracked_files() {
   local repo_root_dir="$1"
   local worktree_dir="$2"
+  local paths=("${COPY_PATHS[@]}")
 
-  for path in "${COPY_PATHS[@]}"; do
+  if is_threat_dragon_repo "$repo_root_dir"; then
+    paths+=("${THREAT_DRAGON_COPY_PATHS[@]}")
+  fi
+
+  for path in "${paths[@]}"; do
     local src="$repo_root_dir/$path"
+    local target="$worktree_dir/$path"
+    local target_parent
 
     if [[ -e "$src" ]]; then
-      cp -R "$src" "$worktree_dir/"
+      target_parent="$(dirname "$target")"
+      mkdir -p "$target_parent"
+
+      if [[ -d "$src" ]]; then
+        mkdir -p "$target"
+        cp -R "$src"/. "$target"/
+      else
+        cp "$src" "$target"
+      fi
     fi
   done
 }
@@ -128,4 +167,3 @@ main() {
 
 
 main "$@" || exit 1
-
