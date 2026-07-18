@@ -188,11 +188,7 @@ fi
 
 restore_previous() {
   if [[ "$RB_RESTORE" == "1" && -n "${PREV_VALUE:-}" ]]; then
-    if [[ "$RB_MODE" == "socat" ]]; then
-      printf 'keyword %s %s\n' "$RB_TARGET" "$PREV_VALUE" | socat - "UNIX-CONNECT:$RB_SOCK" >/dev/null 2>&1 || true
-    else
-      hyprctl keyword "$RB_TARGET" "$PREV_VALUE" >/dev/null 2>&1 || true
-    fi
+    hyprctl eval "hl.config({ general = { col = { active_border = \"${PREV_VALUE}\" } } })" >/dev/null 2>&1 || true
   fi
 }
 
@@ -213,11 +209,12 @@ STEP=$(( RB_STEP_DEG % 360 ))
 
 write_border() {
   local a="$1"
-  if [[ "$RB_MODE" == "socat" ]]; then
-    printf 'keyword %s %s %sdeg\n' "$RB_TARGET" "$RB_COLORS" "$a" | socat - "UNIX-CONNECT:$RB_SOCK" >/dev/null 2>&1 || true
-  else
-    hyprctl keyword "$RB_TARGET" "$RB_COLORS ${a}deg" >/dev/null 2>&1 || true
-  fi
+  local lua_colors=""
+  local color
+  for color in $RB_COLORS; do
+    lua_colors="${lua_colors}\"${color}\","
+  done
+  hyprctl eval "hl.config({ general = { col = { active_border = { colors = { ${lua_colors} }, angle = ${a} } } } })" >/dev/null 2>&1
 }
 
 if [[ "$RB_ONCE" == "1" ]]; then

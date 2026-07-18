@@ -61,6 +61,7 @@
         "class<com.mitchellh.ghostty>": " ",
         "class<org.wezfurlong.wezterm>": " ",
         "class<ferdium|Ferdium>": "󰍩 ",
+        "class<portmaster|Portmaster>": "󰒃 ",
         "title<.*Discord.*>": " ",
         "title<.*ChatGPT.*>": "󰚩 ",
         "title<.*github.*>": " ",
