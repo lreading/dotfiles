@@ -11,19 +11,11 @@ Stow the package to install the managed source and deploy helper:
 stow sddm
 ```
 
-Deploy the selected login background and theme settings to the installed SDDM
-theme (requires `sudo`):
+Deploy the theme settings to the installed SDDM theme (requires `sudo`):
 
 ```bash
 deploy-sddm-theme
 ```
 
-The default background is `~/Pictures/wallpapers/Lofi-Cafe1.png`. To use a
-different image for one deployment, pass its path:
-
-```bash
-deploy-sddm-theme /path/to/background.png
-```
-
-The theme is configured to use `Backgrounds/default`, which also restores
-compatibility with Hyprland-Dots' SDDM wallpaper updater.
+The preserved login background is the theme's `Backgrounds/mountain.png`.
+The managed `theme.conf` pins that image explicitly.

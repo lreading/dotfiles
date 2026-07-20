@@ -16,13 +16,43 @@ local startup_commands = {
   "$HOME/.config/hypr/UserScripts/RainbowBorders.sh",
   "$HOME/.config/hypr/UserScripts/ApplyUserPreferences.sh",
   "sh -c 'sleep 2; pkill -x hypridle; setsid hypridle -c \"$HOME/.config/hypr/UserConfigs/hypridle.conf\" >/tmp/hypridle-user.log 2>&1 &'",
-  "[workspace 1 silent] kitty --detach -e tmux new",
-  "[workspace 2 silent] vivaldi",
   "ferdium --force-device-scale-factor=1.2",
   "gnome-keyring-daemon --start --components=secrets",
 }
 local function run_startup_commands()
   for _, cmd in ipairs(startup_commands) do exec_once(cmd) end
+end
+
+-- Hyprlang's `[workspace N silent] command` prefix is not shell syntax. The
+-- old startup wrapper executed it with `sh -lc`, which is why Kitty and
+-- Vivaldi failed to start. Use the Lua dispatcher and a per-session marker.
+local function launch_window_once(id, command, rules)
+  local marker = "/tmp/hypr-lua-user-window-" .. session .. "-" .. id
+  local marker_file = io.open(marker, "r")
+  if marker_file then
+    marker_file:close()
+    return
+  end
+
+  marker_file = io.open(marker, "w")
+  if marker_file then marker_file:close() end
+
+  if hl and hl.dsp and hl.dsp.exec_cmd then
+    hl.dispatch(hl.dsp.exec_cmd(command, rules))
+  else
+    exec_once(command)
+  end
+end
+
+local function launch_session_windows()
+  launch_window_once("kitty-tmux", "kitty --class hypr-startup-kitty -e tmux new", {
+    workspace = "1 silent",
+    no_initial_focus = true,
+  })
+  launch_window_once("vivaldi", "vivaldi", {
+    workspace = "2 silent",
+    no_initial_focus = true,
+  })
 end
 
 -- The vendor monitor module is loaded after the UserConfigs modules. Apply
@@ -34,28 +64,10 @@ local function apply_user_monitors()
   if not ok then print("Failed to apply user monitor settings: " .. tostring(err)) end
 end
 
--- `silent` is a Hyprland window-rule effect, not shell syntax.  Launch this
--- through the Lua dispatcher so Portmaster opens on workspace 8 without
--- switching to it or taking initial focus.
+-- Portmaster's launcher forks, so its workspace/focus behavior is defined by
+-- the class rule in user_window_rules.lua rather than PID-bound exec rules.
 local function launch_portmaster_once()
-  local marker = "/tmp/hypr-lua-user-portmaster-" .. session
-  local marker_file = io.open(marker, "r")
-  if marker_file then
-    marker_file:close()
-    return
-  end
-
-  marker_file = io.open(marker, "w")
-  if marker_file then marker_file:close() end
-
-  if hl and hl.dsp and hl.dsp.exec_cmd then
-    hl.dispatch(hl.dsp.exec_cmd("portmaster --with-prompts --with-notifications", {
-      workspace = "8 silent",
-      no_initial_focus = true,
-    }))
-  else
-    exec_once("portmaster --with-prompts --with-notifications")
-  end
+  exec_once("portmaster --with-prompts --with-notifications")
 end
 
 if hl and hl.on then
@@ -63,10 +75,12 @@ if hl and hl.on then
   hl.on("hyprland.start", function()
     apply_user_monitors()
     run_startup_commands()
+    launch_session_windows()
     launch_portmaster_once()
   end)
 else
   apply_user_monitors()
   run_startup_commands()
+  launch_session_windows()
   launch_portmaster_once()
 end
