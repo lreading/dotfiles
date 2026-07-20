@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Deploy the Stow-managed simple_sddm_2 settings and login background.
+set -euo pipefail
+
+theme_dir="${SDDM_THEME_DIR:-/usr/share/sddm/themes/simple_sddm_2}"
+script_path="$(readlink -f "$0")"
+package_root="$(cd "$(dirname "$script_path")/../.." && pwd -P)"
+theme_config="$package_root/.config/sddm/simple_sddm_2/theme.conf"
+default_wallpaper="$HOME/Pictures/wallpapers/Lofi-Cafe1.png"
+wallpaper="${1:-$default_wallpaper}"
+
+[[ -f "$theme_config" ]] || { printf 'Missing managed theme config: %s\n' "$theme_config" >&2; exit 1; }
+[[ -f "$wallpaper" ]] || { printf 'Missing wallpaper: %s\n' "$wallpaper" >&2; exit 1; }
+[[ -d "$theme_dir/Backgrounds" ]] || { printf 'Missing SDDM theme: %s\n' "$theme_dir" >&2; exit 1; }
+
+if [[ $EUID -eq 0 ]]; then
+  install -m 0644 "$theme_config" "$theme_dir/theme.conf"
+  install -m 0644 "$wallpaper" "$theme_dir/Backgrounds/default"
+else
+  sudo install -m 0644 "$theme_config" "$theme_dir/theme.conf"
+  sudo install -m 0644 "$wallpaper" "$theme_dir/Backgrounds/default"
+fi
+
+printf 'Deployed simple_sddm_2 with %s as Backgrounds/default.\n' "$(basename "$wallpaper")"

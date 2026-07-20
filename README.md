@@ -25,6 +25,8 @@ The related configs in this repo are user-owned configs, not a complete fork or 
 - `swaync`: notification config and style.
 - `kitty`, `nvim`, `tmux`: app-specific config.
 - `local-bin`: user scripts in `~/.local/bin`, including git worktree helpers.
+- `sddm`: source for the mutable `simple_sddm_2` theme settings and a deploy
+  helper for its system-owned files.
 
 The repo-level `.stowrc` targets `~`, so stow commands can be run from the repo root without passing `--target`.
 
@@ -41,7 +43,7 @@ Run the upstream installers according to those repos. After the upstream config 
 
 ```bash
 cd ~/dev/dotfiles
-stow --adopt hypr waybar swaync kitty nvim tmux local-bin
+stow --adopt hypr waybar swaync kitty nvim tmux local-bin sddm
 git restore .
 ```
 
@@ -49,7 +51,7 @@ git restore .
 
 ```bash
 cd ~/dev/dotfiles
-stow hypr waybar swaync kitty nvim tmux local-bin
+stow hypr waybar swaync kitty nvim tmux local-bin sddm
 ```
 
 After stowing the Hyprland layer, apply the local post-upstream preferences (or just reboot):
