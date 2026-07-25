@@ -2,7 +2,7 @@ export VISUAL=nvim
 export EDITOR="$VISUAL"
 
 alias x="clear"
-alias ll="ls -lah"
+alias ll="ls -lah --color"
 alias kc="kubectl"
 
 # Bash Completion for the kubectl alias
