@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+# Mark the tmux window containing this Codex process. The payload supplied by
+# Codex is intentionally ignored; it is not needed to update the indicator.
+if [[ -z "${TMUX_PANE:-}" ]]; then
+  exit 0
+fi
+
+target_window=$(tmux display-message -p -t "$TMUX_PANE" '#{session_name}:#{window_index}' 2>/dev/null) || exit 0
+[[ -n "$target_window" ]] || exit 0
+
+tmux set-window-option -t "$target_window" @codex_done 1 2>/dev/null || exit 0
+tmux refresh-client -S 2>/dev/null || true
