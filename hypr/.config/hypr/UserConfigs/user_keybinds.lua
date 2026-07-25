@@ -18,6 +18,23 @@ bind("SUPER", "J", dispatch("movefocus", "d"))
 bind("SUPER", "K", dispatch("movefocus", "u"))
 bind("SUPER", "L", dispatch("movefocus", "r"))
 
+-- Hyprland 0.55+ uses the Lua dispatcher API.  Its documented direction
+-- values are the short forms l/r/u/d.
+for _, direction in ipairs({
+  { key = "left", value = "l" },
+  { key = "right", value = "r" },
+  { key = "up", value = "u" },
+  { key = "down", value = "d" },
+}) do
+  unbind("SUPER CTRL", direction.key)
+  bind(
+    "SUPER CTRL",
+    direction.key,
+    hl.dsp.window.move({ direction = direction.value }),
+    { description = "Move window " .. direction.key }
+  )
+end
+
 bind("SUPER SHIFT", "H", exec_cmd("$HOME/.config/hypr/scripts/KeyHints.sh"))
 bind("SUPER ALT", "R", exec_cmd("$HOME/.config/hypr/scripts/Refresh.sh"))
 bind("SUPER ALT", "E", exec_cmd("$HOME/.config/hypr/scripts/RofiEmoji.sh"))
