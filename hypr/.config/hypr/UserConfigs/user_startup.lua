@@ -45,7 +45,7 @@ local function launch_window_once(id, command, rules)
 end
 
 local function launch_session_windows()
-  launch_window_once("kitty-tmux", "kitty --class hypr-startup-kitty -e tmux new", {
+  launch_window_once("kitty-tmux", "kitty --class hypr-startup-kitty --name hypr-startup-tmux -T hypr-startup-tmux -e tmux new", {
     workspace = "1 silent",
     no_initial_focus = true,
   })

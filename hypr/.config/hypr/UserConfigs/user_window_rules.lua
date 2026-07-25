@@ -13,6 +13,13 @@ hl.window_rule({
   no_initial_focus = true,
 })
 hl.window_rule({
+  -- Kitty exposes the requested class only after the initial Wayland
+  -- surface is mapped. Match the stable initial title for startup placement.
+  match = { initial_title = "^hypr-startup-tmux$" },
+  workspace = "1 silent",
+  no_initial_focus = true,
+})
+hl.window_rule({
   match = { class = "^portmaster$" },
   workspace = "8 silent",
   no_initial_focus = true,
