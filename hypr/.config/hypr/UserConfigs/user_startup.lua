@@ -15,7 +15,7 @@ end
 local startup_commands = {
   "$HOME/.config/hypr/UserScripts/RainbowBorders.sh",
   "$HOME/.config/hypr/UserScripts/ApplyUserPreferences.sh",
-  "sh -c 'sleep 2; pkill -x hypridle; setsid hypridle -c \"$HOME/.config/hypr/UserConfigs/hypridle.conf\" >/tmp/hypridle-user.log 2>&1 &'",
+  "$HOME/.config/hypr/UserScripts/StartHypridle.sh",
   "ferdium --force-device-scale-factor=1.2",
   "gnome-keyring-daemon --start --components=secrets",
 }
