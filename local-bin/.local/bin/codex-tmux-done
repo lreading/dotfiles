@@ -6,8 +6,20 @@ if [[ -z "${TMUX_PANE:-}" ]]; then
   exit 0
 fi
 
-target_window=$(tmux display-message -p -t "$TMUX_PANE" '#{session_name}:#{window_index}' 2>/dev/null) || exit 0
+target_window=$(tmux display-message -p -t "$TMUX_PANE" '#{window_id}' 2>/dev/null) || exit 0
 [[ -n "$target_window" ]] || exit 0
+
+# tmux's terminal-focus flag is not reliable during Codex notify callbacks.
+# If an attached client already has this window selected, do not leave a
+# persistent marker. Codex's native desktop notification independently handles
+# whether the terminal is focused or on another desktop.
+while IFS= read -r client_window; do
+  if [[ "$client_window" == "$target_window" ]]; then
+    tmux set-window-option -u -t "$target_window" @codex_done 2>/dev/null || true
+    tmux refresh-client -S 2>/dev/null || true
+    exit 0
+  fi
+done < <(tmux list-clients -F '#{window_id}' 2>/dev/null)
 
 tmux set-window-option -t "$target_window" @codex_done 1 2>/dev/null || exit 0
 tmux refresh-client -S 2>/dev/null || true
