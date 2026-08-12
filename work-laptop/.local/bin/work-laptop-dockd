@@ -63,7 +63,7 @@ start_lid_inhibitor() {
     --what=handle-lid-switch \
     --mode=block \
     --who=work-laptop-dockd \
-    --why="Docked on external display and AC power" \
+    --why="Work laptop on external power" \
     sleep infinity &
   inhibitor_pid="$!"
 }
@@ -98,9 +98,16 @@ apply_undocked() {
   hyprctl keyword monitor "${INTERNAL_OUTPUT},${INTERNAL_MODE},auto,${INTERNAL_SCALE}" >/dev/null 2>&1 || true
 }
 
+apply_ac_only() {
+  start_lid_inhibitor
+  hyprctl keyword monitor "${INTERNAL_OUTPUT},${INTERNAL_MODE},auto,${INTERNAL_SCALE}" >/dev/null 2>&1 || true
+}
+
 while true; do
   if external_connected && ac_online; then
     state="docked"
+  elif ac_online; then
+    state="ac-only"
   else
     state="undocked"
   fi
@@ -108,6 +115,7 @@ while true; do
   if [[ "${state}" != "${last_state}" ]]; then
     case "${state}" in
       docked) apply_docked ;;
+      ac-only) apply_ac_only ;;
       undocked) apply_undocked ;;
     esac
     last_state="${state}"

@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+exec sudo /usr/local/sbin/work-laptop-reset-astro-usb "$@"

@@ -23,7 +23,7 @@ The installer starts from an `archzfs-lts` ISO and creates:
 * optional OpenSSH server
 * local ZFS snapshots using systemd timers
 * root-only pre-upgrade ZFS snapshots using a pacman ALPM hook
-* encrypted, snapshot-excluded Docker/containerd datasets with a 25 GiB combined quota
+* encrypted, snapshot-excluded Docker/containerd datasets with a 40 GiB combined quota
 * weekly scrub and daily pool health checks
 * hibernation disabled for root-on-ZFS safety
 
@@ -80,6 +80,35 @@ For file-level recovery, use ZFS snapshots directly, such as:
 ```
 
 Off-system replication and portable backups are separate layers and should be configured outside this base installer.
+
+## Existing-system migration
+
+Do not rerun the installer on an existing system. Use the reconciliation tool
+to replace the legacy recursive policy and isolate volatile data:
+
+```bash
+./reconcile-existing-zfs.sh audit
+sudo ./reconcile-existing-zfs.sh apply
+sudo ./reconcile-existing-zfs.sh verify
+```
+
+The migration stops Docker and containerd while copying their data into
+encrypted child datasets. It also moves `/local/development/tmp` into an
+excluded child dataset. The container datasets have a combined 40 GiB quota;
+the development tmp dataset has a 50 GiB quota.
+
+The reconciliation tool also applies dataset-level guardrails: 175 GiB for the
+root boot environment (including volatile children and snapshots), 250 GiB for
+home, and 400 GiB for `/local/development`. Together these preserve roughly
+95 GiB of pool headroom even if all three limits are reached.
+
+The original directories remain as timestamped rollback copies, and the tool
+does not destroy existing snapshots. Migrated systems use `autosnap_v2_*` and
+`pre_update_v2_*` names, so automatic retention applies only to new snapshots;
+the legacy recursive history remains untouched until an independent backup and
+restore test are complete. Review the paths in
+`/var/lib/arch-zfs-reconcile/rollback-directories.tsv` before removing any
+rollback copy or pruning legacy snapshots.
 
 ## References
 

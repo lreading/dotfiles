@@ -7,7 +7,7 @@ INSTALL_RUN_DIR=/run/arch-zfs-install
 ZFS_KEYFILE="${INSTALL_RUN_DIR}/zfs.key"
 TARGET=/mnt
 POOL=zroot
-VOLATILE_QUOTA=25G
+VOLATILE_QUOTA=40G
 
 DISK_COUNT=""
 HOSTNAME="arch-zfs"
@@ -1027,8 +1027,9 @@ write_autosnapshot_config() {
 
   {
     printf 'POOL=zroot\n'
-    printf 'CAPACITY_WARN=80\n'
-    printf 'CAPACITY_CRITICAL=90\n'
+    printf 'CAPACITY_WARN=70\n'
+    printf 'CAPACITY_CRITICAL=80\n'
+    printf 'PRUNE_EXPIRED=yes\n'
     printf 'PREPACMAN_KEEP=3\n'
     printf 'PREPACMAN_DATASET=zroot/ROOT/arch\n'
     printf 'declare -A SNAPSHOT_POLICY_DATASETS=(\n'
@@ -1199,15 +1200,17 @@ install_zfs_maintenance() {
 #!/usr/bin/env bash
 set -euo pipefail
 
-CONFIG=/etc/zfs/arch-autosnapshot.conf
+CONFIG="${ZFS_AUTOSNAPSHOT_CONFIG:-/etc/zfs/arch-autosnapshot.conf}"
 if [[ -r "$CONFIG" ]]; then
   # shellcheck source=/dev/null
   . "$CONFIG"
 fi
 
 POOL="${POOL:-zroot}"
-CAPACITY_WARN="${CAPACITY_WARN:-80}"
-CAPACITY_CRITICAL="${CAPACITY_CRITICAL:-90}"
+CAPACITY_WARN="${CAPACITY_WARN:-70}"
+CAPACITY_CRITICAL="${CAPACITY_CRITICAL:-80}"
+PRUNE_EXPIRED="${PRUNE_EXPIRED:-yes}"
+PREPACMAN_PREFIX="${PREPACMAN_PREFIX:-pre_update}"
 PREPACMAN_KEEP="${PREPACMAN_KEEP:-3}"
 PREPACMAN_DATASET="${PREPACMAN_DATASET:-${POOL}/ROOT/arch}"
 
@@ -1222,16 +1225,17 @@ zfs list -H -t filesystem "$PREPACMAN_DATASET" >/dev/null
 capacity="$(zpool list -H -o capacity "$POOL" | tr -d '%')"
 if [[ "$capacity" =~ ^[0-9]+$ ]]; then
   if ((capacity >= CAPACITY_CRITICAL)); then
-    logger -p daemon.err -t zfs-prepacman-snapshot "pool ${POOL} is ${capacity}% full; creating pre-upgrade snapshot but capacity is critical"
+    logger -p daemon.err -t zfs-prepacman-snapshot "pool ${POOL} is ${capacity}% full; refusing pre-upgrade snapshot"
+    exit 75
   elif ((capacity >= CAPACITY_WARN)); then
     logger -p daemon.warning -t zfs-prepacman-snapshot "pool ${POOL} is ${capacity}% full"
   fi
 fi
 
-snapshot_name="pre_update_$(date -u +%Y%m%dT%H%M%SZ)"
+snapshot_name="${PREPACMAN_PREFIX}_$(date -u +%Y%m%dT%H%M%SZ)"
 if zfs list -H -t snapshot "${PREPACMAN_DATASET}@${snapshot_name}" >/dev/null 2>&1; then
   sleep 1
-  snapshot_name="pre_update_$(date -u +%Y%m%dT%H%M%SZ)"
+  snapshot_name="${PREPACMAN_PREFIX}_$(date -u +%Y%m%dT%H%M%SZ)"
 fi
 
 if [[ ! "$snapshot_name" =~ ^[A-Za-z0-9][A-Za-z0-9._:-]*$ ]]; then
@@ -1241,7 +1245,12 @@ fi
 
 zfs snapshot "${PREPACMAN_DATASET}@${snapshot_name}"
 
-mapfile -t snapshots < <(zfs list -H -t snapshot -o name -s creation -d 1 "$PREPACMAN_DATASET" | grep -F "${PREPACMAN_DATASET}@pre_update_" || true)
+if [[ "$PRUNE_EXPIRED" != "yes" ]]; then
+  logger -p daemon.info -t zfs-prepacman-snapshot "created root snapshot ${PREPACMAN_DATASET}@${snapshot_name}; automatic pruning is disabled"
+  exit 0
+fi
+
+mapfile -t snapshots < <(zfs list -H -t snapshot -o name -s creation -d 1 "$PREPACMAN_DATASET" | grep -F "${PREPACMAN_DATASET}@${PREPACMAN_PREFIX}_" || true)
 excess=$((${#snapshots[@]} - PREPACMAN_KEEP))
 if ((excess > 0)); then
   for ((i = 0; i < excess; i++)); do
@@ -1272,15 +1281,17 @@ EOF
 #!/usr/bin/env bash
 set -euo pipefail
 
-CONFIG=/etc/zfs/arch-autosnapshot.conf
+CONFIG="${ZFS_AUTOSNAPSHOT_CONFIG:-/etc/zfs/arch-autosnapshot.conf}"
 if [[ -r "$CONFIG" ]]; then
   # shellcheck source=/dev/null
   . "$CONFIG"
 fi
 
 POOL="${POOL:-zroot}"
-CAPACITY_WARN="${CAPACITY_WARN:-80}"
-CAPACITY_CRITICAL="${CAPACITY_CRITICAL:-90}"
+CAPACITY_WARN="${CAPACITY_WARN:-70}"
+CAPACITY_CRITICAL="${CAPACITY_CRITICAL:-80}"
+PRUNE_EXPIRED="${PRUNE_EXPIRED:-yes}"
+SNAPSHOT_PREFIX="${SNAPSHOT_PREFIX:-autosnap}"
 INSTANCE="${1:?snapshot policy and class required}"
 
 CLASS="${INSTANCE##*--}"
@@ -1300,28 +1311,37 @@ fi
 capacity="$(zpool list -H -o capacity "$POOL" | tr -d '%')"
 if [[ "$capacity" =~ ^[0-9]+$ ]]; then
   if ((capacity >= CAPACITY_CRITICAL)); then
-    logger -p daemon.err -t zfs-autosnapshot "pool ${POOL} is ${capacity}% full; creating ${POLICY}/${CLASS} snapshot but capacity is critical"
+    logger -p daemon.err -t zfs-autosnapshot "pool ${POOL} is ${capacity}% full; refusing ${POLICY}/${CLASS} snapshot"
+    exit 75
   elif ((capacity >= CAPACITY_WARN)); then
     logger -p daemon.warning -t zfs-autosnapshot "pool ${POOL} is ${capacity}% full"
   fi
 fi
 
-snapshot_name="autosnap_${POLICY}_${CLASS}_$(date -u +%Y%m%dT%H%M%SZ)"
+snapshot_name="${SNAPSHOT_PREFIX}_${POLICY}_${CLASS}_$(date -u +%Y%m%dT%H%M%SZ)"
+snapshot_targets=()
 
 for spec in $DATASET_SPECS; do
   dataset="${spec%:*}"
   mode="${spec##*:}"
 
   case "$mode" in
-    n) zfs snapshot "${dataset}@${snapshot_name}" ;;
+    n) snapshot_targets+=("${dataset}@${snapshot_name}") ;;
     *) echo "Unknown snapshot mode for ${spec}" >&2; exit 65 ;;
   esac
 done
 
+zfs snapshot "${snapshot_targets[@]}"
+
+if [[ "$PRUNE_EXPIRED" != "yes" ]]; then
+  logger -p daemon.info -t zfs-autosnapshot "created ${POLICY}/${CLASS}; automatic pruning is disabled"
+  exit 0
+fi
+
 for spec in $DATASET_SPECS; do
   dataset="${spec%:*}"
   mode="${spec##*:}"
-  mapfile -t snapshots < <(zfs list -H -t snapshot -o name -s creation -d 1 "$dataset" | grep -F "${dataset}@autosnap_${POLICY}_${CLASS}_" || true)
+  mapfile -t snapshots < <(zfs list -H -t snapshot -o name -s creation -d 1 "$dataset" | grep -F "${dataset}@${SNAPSHOT_PREFIX}_${POLICY}_${CLASS}_" || true)
   excess=$((${#snapshots[@]} - KEEP))
   if ((excess > 0)); then
     for ((i = 0; i < excess; i++)); do
@@ -1346,8 +1366,8 @@ if [[ -r "$CONFIG" ]]; then
 fi
 
 POOL="${POOL:-zroot}"
-CAPACITY_WARN="${CAPACITY_WARN:-80}"
-CAPACITY_CRITICAL="${CAPACITY_CRITICAL:-90}"
+CAPACITY_WARN="${CAPACITY_WARN:-70}"
+CAPACITY_CRITICAL="${CAPACITY_CRITICAL:-80}"
 status="0"
 
 health="$(zpool get -H -o value health "$POOL")"

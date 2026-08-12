@@ -27,6 +27,8 @@ The related configs in this repo are user-owned configs, not a complete fork or 
 - `local-bin`: user scripts in `~/.local/bin`, including git worktree helpers.
 - `sddm`: source for the mutable `simple_sddm_2` theme settings and a deploy
   helper for its system-owned files.
+- `work-laptop`: optional Framework dock, network, USB, Hyprland, and shell
+  customizations. Stow this package only on the work laptop.
 
 The repo-level `.stowrc` targets `~`, so stow commands can be run from the repo root without passing `--target`.
 
@@ -43,7 +45,8 @@ Run the upstream installers according to those repos. After the upstream config 
 
 ```bash
 cd ~/dev/dotfiles
-stow --adopt hypr waybar swaync kitty nvim tmux local-bin sddm
+stow --adopt hypr waybar swaync kitty nvim tmux local-bin sddm shell
+stow --adopt work-laptop # Only on the work laptop.
 git restore .
 ```
 
@@ -51,7 +54,8 @@ git restore .
 
 ```bash
 cd ~/dev/dotfiles
-stow hypr waybar swaync kitty nvim tmux local-bin sddm
+stow hypr waybar swaync kitty nvim tmux local-bin sddm shell
+stow work-laptop # Only on the work laptop.
 ```
 
 After stowing the Hyprland layer, apply the local post-upstream preferences (or just reboot):
@@ -62,6 +66,20 @@ hyprctl reload
 pkill -SIGUSR2 waybar || hyprctl dispatch exec waybar
 swaync-client --reload-css
 ```
+
+This user layer uses Hyprland's Lua configuration. If Hyprland-Dots installed
+the Lua entrypoint as `hyprland.lua.disable`, enable and verify it while keeping
+the old Hyprlang entrypoint as a rollback:
+
+```bash
+mv ~/.config/hypr/hyprland.conf ~/.config/hypr/hyprland.conf.disable
+mv ~/.config/hypr/hyprland.lua.disable ~/.config/hypr/hyprland.lua
+Hyprland --verify-config
+```
+
+Restart Hyprland or reboot after the verification succeeds. Do not use
+`hyprctl reload` for this one-time switch: an already-running Hyprland process
+keeps its original `.conf` path until the compositor restarts.
 
 ## Hyprland-Dots Updates
 

@@ -1,0 +1,10 @@
+[Trigger]
+Operation = Upgrade
+Type = Package
+Target = *
+
+[Action]
+Description = Create root ZFS snapshot before package upgrades
+When = PreTransaction
+Exec = /usr/local/sbin/zfs-prepacman-snapshot
+AbortOnFail

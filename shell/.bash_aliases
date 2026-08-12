@@ -1,3 +1,5 @@
+# shellcheck shell=bash
+
 export VISUAL=nvim
 export EDITOR="$VISUAL"
 
@@ -24,7 +26,7 @@ __k8s_ns_complete() {
   local nss
   nss="$(kubectl get ns -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' 2>/dev/null)"
 
-  COMPREPLY=( $(compgen -W "$nss" -- "$cur") )
+  mapfile -t COMPREPLY < <(compgen -W "$nss" -- "$cur")
 }
 
 # Attach completion to BOTH the function and the alias name
@@ -115,10 +117,18 @@ git-worktree() {
     return 1
   fi
 
-  cd "$dir"
+  cd "$dir" || return 1
 }
 
-alias kill-ferdium="kill -9 $(ps aux | grep ferdium | head -n 1 | awk '{ print $2 }')"
+kill-ferdium() {
+  local pid
+
+  pid="$(pgrep -o -x ferdium)" || {
+    echo "kill-ferdium: no Ferdium process found" >&2
+    return 1
+  }
+  kill -9 "$pid"
+}
 
 _td_e2e() {
   (
@@ -127,3 +137,15 @@ _td_e2e() {
   )
 }
 alias td-e2e='_td_e2e'
+
+# Load optional machine- or role-specific aliases supplied by other Stow
+# packages. A clean install without any fragments remains fully functional.
+alias_dir="${XDG_CONFIG_HOME:-$HOME/.config}/bash/aliases.d"
+if [[ -d "$alias_dir" ]]; then
+  for alias_file in "$alias_dir"/*.bash; do
+    [[ -r "$alias_file" ]] || continue
+    # shellcheck source=/dev/null
+    source "$alias_file"
+  done
+fi
+unset alias_file alias_dir

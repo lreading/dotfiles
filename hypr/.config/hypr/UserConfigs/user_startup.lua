@@ -87,3 +87,16 @@ else
   launch_session_windows()
   launch_portmaster_once()
 end
+
+-- Machine-specific packages can provide an optional module without making
+-- the shared Hyprland configuration depend on that machine.
+do
+  local work_laptop = (os.getenv("XDG_CONFIG_HOME") or (os.getenv("HOME") .. "/.config"))
+    .. "/hypr/work_laptop.lua"
+  local handle = io.open(work_laptop, "r")
+  if handle then
+    handle:close()
+    local ok, err = pcall(dofile, work_laptop)
+    if not ok then print("Failed to load work laptop settings: " .. tostring(err)) end
+  end
+end

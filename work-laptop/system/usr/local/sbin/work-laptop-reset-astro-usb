@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly ASTRO_DEVICE="/sys/bus/usb/devices/3-2.1.2.4.4"
+readonly ASTRO_PORT="/sys/bus/usb/devices/3-2.1.2.4:1.0/3-2.1.2.4-port4"
+
+keep_awake() {
+  local device
+
+  for device in \
+    /sys/bus/usb/devices/3-2 \
+    /sys/bus/usb/devices/3-2.1 \
+    /sys/bus/usb/devices/3-2.1.2 \
+    /sys/bus/usb/devices/3-2.1.2.4 \
+    "${ASTRO_DEVICE}"; do
+    [[ -e "${device}/power/control" ]] || continue
+    printf 'on' >"${device}/power/control" 2>/dev/null || true
+  done
+}
+
+reset_port() {
+  [[ -e "${ASTRO_PORT}/disable" ]] || {
+    printf 'Astro hub port not found: %s\n' "${ASTRO_PORT}" >&2
+    return 1
+  }
+
+  printf '1' >"${ASTRO_PORT}/disable"
+  sleep 2
+  printf '0' >"${ASTRO_PORT}/disable"
+}
+
+wait_for_astro() {
+  local _attempt
+
+  for _attempt in {1..40}; do
+    [[ -e "${ASTRO_DEVICE}/idVendor" ]] && return 0
+    sleep 0.25
+  done
+
+  return 1
+}
+
+keep_awake
+reset_port
+
+if wait_for_astro; then
+  keep_awake
+  exit 0
+fi
+
+printf 'Astro MixAmp did not enumerate after resetting %s\n' "${ASTRO_PORT}" >&2
+exit 2
