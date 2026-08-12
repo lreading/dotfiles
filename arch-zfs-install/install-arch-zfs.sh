@@ -7,6 +7,7 @@ INSTALL_RUN_DIR=/run/arch-zfs-install
 ZFS_KEYFILE="${INSTALL_RUN_DIR}/zfs.key"
 TARGET=/mnt
 POOL=zroot
+VOLATILE_QUOTA=25G
 
 DISK_COUNT=""
 HOSTNAME="arch-zfs"
@@ -34,7 +35,6 @@ declare -a ADDITIONAL_LOCAL_DATASETS=()
 declare -A ADDITIONAL_LOCAL_SEPARATE_POLICY=()
 declare -A ADDITIONAL_LOCAL_POLICY_KEEP=()
 declare -a SNAPSHOT_TIMER_UNITS=()
-SNAPSHOT_USE_RECURSIVE_DEFAULT="yes"
 EFI_DEVICE=""
 
 say() {
@@ -353,11 +353,11 @@ default_keep_for_class() {
   local class="$1"
 
   case "$class" in
-    10min) printf '%s\n' "20" ;;
-    hourly) printf '%s\n' "10" ;;
-    daily) printf '%s\n' "7" ;;
-    weekly) printf '%s\n' "4" ;;
-    monthly) printf '%s\n' "6" ;;
+    10min) printf '%s\n' "4" ;;
+    hourly) printf '%s\n' "4" ;;
+    daily) printf '%s\n' "3" ;;
+    weekly) printf '%s\n' "2" ;;
+    monthly) printf '%s\n' "2" ;;
     *) die "Unknown snapshot class: $class" ;;
   esac
 }
@@ -375,16 +375,13 @@ collect_additional_snapshot_policies() {
 
   say ""
   say "Additional /local datasets can inherit the default snapshot policy or use separate retention."
-  say "The default policy is a recursive zroot snapshot. It keeps one coherent snapshot name across root, home, and inherited /local datasets."
-  say "If any dataset uses a separate policy, the installer stops using recursive zroot snapshots and creates explicit per-policy dataset snapshots instead."
-  say "That materially changes restore semantics in ZFSBootMenu and ZFS. Only choose a separate policy if you are comfortable restoring individual datasets."
+  say "Snapshots are created on explicit datasets. Root snapshots remain usable by ZFSBootMenu, while /home and /local datasets retain independent file-recovery history."
 
   for mountpoint in "${ADDITIONAL_LOCAL_DATASETS[@]}"; do
     ask_yes_no "Use a separate snapshot policy for ${mountpoint}" "no" separate
     ADDITIONAL_LOCAL_SEPARATE_POLICY["$mountpoint"]="$separate"
 
     if [[ "$separate" == "yes" ]]; then
-      SNAPSHOT_USE_RECURSIVE_DEFAULT="no"
       say "Retention for ${mountpoint}. Enter 0 to disable a snapshot class."
       for class in 10min hourly daily weekly monthly; do
         default_keep="$(default_keep_for_class "$class")"
@@ -646,11 +643,7 @@ confirm_destruction() {
   else
     say "Additional /local datasets: none"
   fi
-  if [[ "$SNAPSHOT_USE_RECURSIVE_DEFAULT" == "yes" ]]; then
-    say "Default snapshot model: recursive zroot snapshots"
-  else
-    say "Default snapshot model: explicit dataset list because at least one /local dataset has separate retention"
-  fi
+  say "Default snapshot model: explicit, non-recursive dataset snapshots"
   say "Create user: ${CREATE_USER}"
   if [[ "$CREATE_USER" == "yes" ]]; then
     say "New user: ${NEW_USERNAME}; sudo: ${NEW_USER_SUDO}"
@@ -889,6 +882,11 @@ create_zpool() {
   zfs load-key -L "file://${ZFS_KEYFILE}" "$POOL"
   zfs mount "${POOL}/ROOT/arch"
   zfs mount -a
+  zfs create -o mountpoint=none -o quota="$VOLATILE_QUOTA" "${POOL}/ROOT/arch/volatile"
+  zfs create -o mountpoint=/var/lib/docker "${POOL}/ROOT/arch/volatile/docker"
+  zfs create -o mountpoint=/var/lib/containerd "${POOL}/ROOT/arch/volatile/containerd"
+  chmod 0710 "$TARGET/var/lib/docker"
+  chmod 0700 "$TARGET/var/lib/containerd"
   zfs set keylocation=prompt "$POOL"
   zfs set snapdir=visible "${POOL}/home"
   udevadm trigger
@@ -1031,17 +1029,16 @@ write_autosnapshot_config() {
     printf 'POOL=zroot\n'
     printf 'CAPACITY_WARN=80\n'
     printf 'CAPACITY_CRITICAL=90\n'
-    printf 'PREPACMAN_KEEP=7\n'
-    printf 'RECURSIVE_DEFAULT=%q\n' "$SNAPSHOT_USE_RECURSIVE_DEFAULT"
+    printf 'PREPACMAN_KEEP=3\n'
+    printf 'PREPACMAN_DATASET=zroot/ROOT/arch\n'
     printf 'declare -A SNAPSHOT_POLICY_DATASETS=(\n'
-    printf '  ["default"]="zroot/ROOT:r zroot/home:r'
+    printf '  ["default"]="zroot/ROOT/arch:n zroot/home:n'
 
     if ((${#ADDITIONAL_LOCAL_DATASETS[@]} > 0)); then
-      printf ' zroot/local:n'
       for mountpoint in "${ADDITIONAL_LOCAL_DATASETS[@]}"; do
         if [[ "${ADDITIONAL_LOCAL_SEPARATE_POLICY[$mountpoint]}" != "yes" ]]; then
           relative_dataset="${mountpoint#/local/}"
-          printf ' zroot/local/%s:r' "$relative_dataset"
+          printf ' zroot/local/%s:n' "$relative_dataset"
         fi
       done
     fi
@@ -1051,7 +1048,7 @@ write_autosnapshot_config() {
       if [[ "${ADDITIONAL_LOCAL_SEPARATE_POLICY[$mountpoint]}" == "yes" ]]; then
         policy="$(snapshot_policy_name_for_mountpoint "$mountpoint")"
         relative_dataset="${mountpoint#/local/}"
-        printf '  ["%s"]="zroot/local/%s:r"\n' "$policy" "$relative_dataset"
+        printf '  ["%s"]="zroot/local/%s:n"\n' "$policy" "$relative_dataset"
       fi
     done
     printf ')\n'
@@ -1211,13 +1208,16 @@ fi
 POOL="${POOL:-zroot}"
 CAPACITY_WARN="${CAPACITY_WARN:-80}"
 CAPACITY_CRITICAL="${CAPACITY_CRITICAL:-90}"
-PREPACMAN_KEEP="${PREPACMAN_KEEP:-7}"
+PREPACMAN_KEEP="${PREPACMAN_KEEP:-3}"
+PREPACMAN_DATASET="${PREPACMAN_DATASET:-${POOL}/ROOT/arch}"
 
 if [[ ! "$PREPACMAN_KEEP" =~ ^[0-9]+$ ]]; then
-  PREPACMAN_KEEP=7
+  PREPACMAN_KEEP=3
 elif ((PREPACMAN_KEEP < 1)); then
   PREPACMAN_KEEP=1
 fi
+
+zfs list -H -t filesystem "$PREPACMAN_DATASET" >/dev/null
 
 capacity="$(zpool list -H -o capacity "$POOL" | tr -d '%')"
 if [[ "$capacity" =~ ^[0-9]+$ ]]; then
@@ -1229,7 +1229,7 @@ if [[ "$capacity" =~ ^[0-9]+$ ]]; then
 fi
 
 snapshot_name="pre_update_$(date -u +%Y%m%dT%H%M%SZ)"
-if zfs list -H -t snapshot "${POOL}@${snapshot_name}" >/dev/null 2>&1; then
+if zfs list -H -t snapshot "${PREPACMAN_DATASET}@${snapshot_name}" >/dev/null 2>&1; then
   sleep 1
   snapshot_name="pre_update_$(date -u +%Y%m%dT%H%M%SZ)"
 fi
@@ -1239,19 +1239,19 @@ if [[ ! "$snapshot_name" =~ ^[A-Za-z0-9][A-Za-z0-9._:-]*$ ]]; then
   exit 65
 fi
 
-zfs snapshot -r "${POOL}@${snapshot_name}"
+zfs snapshot "${PREPACMAN_DATASET}@${snapshot_name}"
 
-mapfile -t snapshots < <(zfs list -H -t snapshot -o name -s creation -d 1 "$POOL" | grep -F "${POOL}@pre_update_" || true)
+mapfile -t snapshots < <(zfs list -H -t snapshot -o name -s creation -d 1 "$PREPACMAN_DATASET" | grep -F "${PREPACMAN_DATASET}@pre_update_" || true)
 excess=$((${#snapshots[@]} - PREPACMAN_KEEP))
 if ((excess > 0)); then
   for ((i = 0; i < excess; i++)); do
-    if ! zfs destroy -r "${snapshots[$i]}"; then
-      logger -p daemon.warning -t zfs-prepacman-snapshot "created ${POOL}@${snapshot_name}, but failed to prune old snapshot ${snapshots[$i]}"
+    if ! zfs destroy "${snapshots[$i]}"; then
+      logger -p daemon.warning -t zfs-prepacman-snapshot "created ${PREPACMAN_DATASET}@${snapshot_name}, but failed to prune old snapshot ${snapshots[$i]}"
     fi
   done
 fi
 
-logger -p daemon.info -t zfs-prepacman-snapshot "created recursive snapshot ${POOL}@${snapshot_name}"
+logger -p daemon.info -t zfs-prepacman-snapshot "created root snapshot ${PREPACMAN_DATASET}@${snapshot_name}"
 EOF
   chmod 0755 "$TARGET/usr/local/sbin/zfs-prepacman-snapshot"
 
@@ -1262,7 +1262,7 @@ Type = Package
 Target = *
 
 [Action]
-Description = Create recursive ZFS snapshot before package upgrades
+Description = Create root ZFS snapshot before package upgrades
 When = PreTransaction
 Exec = /usr/local/sbin/zfs-prepacman-snapshot
 AbortOnFail
@@ -1281,11 +1281,10 @@ fi
 POOL="${POOL:-zroot}"
 CAPACITY_WARN="${CAPACITY_WARN:-80}"
 CAPACITY_CRITICAL="${CAPACITY_CRITICAL:-90}"
-RECURSIVE_DEFAULT="${RECURSIVE_DEFAULT:-no}"
 INSTANCE="${1:?snapshot policy and class required}"
 
 CLASS="${INSTANCE##*--}"
-POLICY="${INSTANCE%--${CLASS}}"
+POLICY="${INSTANCE%--"${CLASS}"}"
 KEEP="${SNAPSHOT_POLICY_KEEP["${POLICY}|${CLASS}"]:-}"
 DATASET_SPECS="${SNAPSHOT_POLICY_DATASETS["${POLICY}"]:-}"
 
@@ -1309,24 +1308,11 @@ fi
 
 snapshot_name="autosnap_${POLICY}_${CLASS}_$(date -u +%Y%m%dT%H%M%SZ)"
 
-if [[ "$POLICY" == "default" && "$RECURSIVE_DEFAULT" == "yes" ]]; then
-  zfs snapshot -r "${POOL}@${snapshot_name}"
-  mapfile -t snapshots < <(zfs list -H -t snapshot -o name -s creation -d 1 "$POOL" | grep -F "${POOL}@autosnap_${POLICY}_${CLASS}_" || true)
-  excess=$((${#snapshots[@]} - KEEP))
-  if ((excess > 0)); then
-    for ((i = 0; i < excess; i++)); do
-      zfs destroy -r "${snapshots[$i]}"
-    done
-  fi
-  exit 0
-fi
-
 for spec in $DATASET_SPECS; do
   dataset="${spec%:*}"
   mode="${spec##*:}"
 
   case "$mode" in
-    r) zfs snapshot -r "${dataset}@${snapshot_name}" ;;
     n) zfs snapshot "${dataset}@${snapshot_name}" ;;
     *) echo "Unknown snapshot mode for ${spec}" >&2; exit 65 ;;
   esac
@@ -1340,7 +1326,6 @@ for spec in $DATASET_SPECS; do
   if ((excess > 0)); then
     for ((i = 0; i < excess; i++)); do
       case "$mode" in
-        r) zfs destroy -r "${snapshots[$i]}" ;;
         n) zfs destroy "${snapshots[$i]}" ;;
         *) echo "Unknown snapshot mode for ${spec}" >&2; exit 65 ;;
       esac

@@ -37,15 +37,18 @@ local function launch_window_once(id, command, rules)
   marker_file = io.open(marker, "w")
   if marker_file then marker_file:close() end
 
-  if hl and hl.dsp and hl.dsp.exec_cmd then
-    hl.dispatch(hl.dsp.exec_cmd(command, rules))
+  if hl and hl.exec_cmd then
+    -- `hl.exec_cmd` is the Lua API which accepts per-launch window rules.
+    -- The dispatcher variant only accepts the command, so its second argument
+    -- was ignored after the Hyprland Lua migration.
+    hl.exec_cmd(command, rules)
   else
     exec_once(command)
   end
 end
 
 local function launch_session_windows()
-  launch_window_once("kitty-tmux", "kitty --class hypr-startup-kitty --name hypr-startup-tmux -T hypr-startup-tmux -e tmux new", {
+  launch_window_once("kitty-tmux", "kitty --class hypr-startup-kitty --name hypr-startup-tmux -T hypr-startup-tmux -e tmux new-session -n TODO 'nvim TODO.md' \\; new-window \\; select-window -t :TODO", {
     workspace = "1 silent",
     no_initial_focus = true,
   })

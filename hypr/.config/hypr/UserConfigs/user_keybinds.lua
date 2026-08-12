@@ -59,6 +59,7 @@ rebind("SUPER CTRL", "R", exec_cmd("$HOME/.config/hypr/scripts/RofiThemeSelector
 rebind("SUPER CTRL SHIFT", "R", exec_cmd("pkill rofi || true && $HOME/.config/hypr/scripts/RofiThemeSelector-modified.sh"), { description = "Rofi theme selector (modified)" })
 
 rebind("SUPER", "N", exec_cmd("swaync-client -t -sw"), { description = "Notification panel" })
+rebind("SUPER SHIFT", "C", exec_cmd("swaync-client -C -sw"), { description = "Clear all notifications" })
 
 rebind("SUPER SHIFT", "F", dispatch("fullscreen", "0"), { description = "Fullscreen" })
 rebind("SUPER CTRL", "F", dispatch("fullscreen", "1"), { description = "Fake fullscreen" })

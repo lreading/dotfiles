@@ -22,7 +22,8 @@ The installer starts from an `archzfs-lts` ISO and creates:
 * optional sudo setup
 * optional OpenSSH server
 * local ZFS snapshots using systemd timers
-* recursive pre-upgrade ZFS snapshots using a pacman ALPM hook
+* root-only pre-upgrade ZFS snapshots using a pacman ALPM hook
+* encrypted, snapshot-excluded Docker/containerd datasets with a 25 GiB combined quota
 * weekly scrub and daily pool health checks
 * hibernation disabled for root-on-ZFS safety
 
@@ -54,17 +55,19 @@ Disk selection is destructive. The script lists available disks, asks for one or
 
 ## Snapshot Policy
 
-By default, snapshots use a recursive `zroot` policy. This keeps root, home, and inherited `/local` datasets aligned under the same snapshot names.
+By default, snapshots target explicit datasets without recursion. The root boot environment, home, and inherited `/local` datasets receive independent snapshots under the same retention schedule. Child datasets used for volatile storage are not pulled into root snapshots.
 
-Optional `/local` datasets can be given separate retention policies, but doing that changes restore semantics. A separate policy means the installer stops using one recursive root snapshot and creates explicit per-policy dataset snapshots instead. Only use that mode when dataset-aware ZFS restore procedures are acceptable.
+The default schedule keeps 4 ten-minute snapshots, 4 hourly snapshots, 3 daily snapshots, 2 weekly snapshots, and 2 monthly snapshots per included dataset.
 
-Package upgrades also create a recursive `zroot` snapshot before the transaction starts. The installer writes `/usr/local/sbin/zfs-prepacman-snapshot` and `/etc/pacman.d/hooks/zfs-snapshot-pre.hook`; the hook is a `PreTransaction` ALPM hook for package `Upgrade` operations. Snapshot names use the same timestamp style as the timer snapshots, for example:
+Optional `/local` datasets can be given separate retention policies. Root snapshots remain directly usable by ZFSBootMenu; home and `/local` snapshots provide independent file-level recovery.
+
+Package upgrades create a snapshot of `zroot/ROOT/arch` before the transaction starts. The installer writes `/usr/local/sbin/zfs-prepacman-snapshot` and `/etc/pacman.d/hooks/zfs-snapshot-pre.hook`; the hook is a `PreTransaction` ALPM hook for package `Upgrade` operations. Snapshot names use the same timestamp style as the timer snapshots, for example:
 
 ```bash
-zroot@pre_update_20260419T143000Z
+zroot/ROOT/arch@pre_update_20260419T143000Z
 ```
 
-The pre-upgrade hook keeps the newest 7 `pre_update_*` snapshots by count. It uses `AbortOnFail`, so pacman will stop before changing packages if the safety snapshot cannot be created. If an old snapshot cannot be pruned after the new one is created, the hook logs a warning and allows the upgrade to continue.
+The pre-upgrade hook keeps the newest 3 `pre_update_*` root snapshots by count. It uses `AbortOnFail`, so pacman will stop before changing packages if the safety snapshot cannot be created. If an old snapshot cannot be pruned after the new one is created, the hook logs a warning and allows the upgrade to continue.
 
 ## Recovery Notes
 
