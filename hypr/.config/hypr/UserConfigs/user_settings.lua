@@ -21,7 +21,6 @@ hl.config({
 })
 
 hl.config({
-  debug = { vfr = true },
   misc = {
     disable_hyprland_logo = true, disable_splash_rendering = true, vrr = 2,
     mouse_move_enables_dpms = true, enable_swallow = false,
@@ -40,3 +39,7 @@ hl.config({
     enable_hyprcursor = true, warp_on_change_workspace = 2, no_warps = true,
   },
 })
+
+-- Preserve the pre-migration user override that disabled the vendor's
+-- three-finger workspace gesture.
+hl.gesture({ fingers = 3, direction = "horizontal", action = "unset" })

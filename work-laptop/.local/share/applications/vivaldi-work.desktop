@@ -1,0 +1,22 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Vivaldi (Work)
+GenericName=Web Browser
+Comment=Open links in the Work Vivaldi profile
+Exec=/usr/bin/vivaldi-stable --profile-directory=Default %U
+Terminal=false
+Icon=vivaldi
+Categories=Network;WebBrowser;
+StartupNotify=true
+StartupWMClass=vivaldi-stable
+MimeType=x-scheme-handler/unknown;x-scheme-handler/about;text/html;text/xml;application/xhtml+xml;application/xml;application/rss+xml;application/rdf+xml;image/gif;image/jpeg;image/png;x-scheme-handler/http;x-scheme-handler/https;
+Actions=new-window;new-private-window;
+
+[Desktop Action new-window]
+Name=New Work Window
+Exec=/usr/bin/vivaldi-stable --profile-directory=Default --new-window
+
+[Desktop Action new-private-window]
+Name=New Work Private Window
+Exec=/usr/bin/vivaldi-stable --profile-directory=Default --incognito

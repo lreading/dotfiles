@@ -68,11 +68,6 @@ rebind("SUPER", "SPACE", dispatch("togglefloating", ""), { description = "Float 
 rebind("SUPER ALT", "SPACE", exec_cmd("$HOME/.config/hypr/scripts/Float-all-Windows.sh"), { description = "Float all windows" })
 rebind("SUPER SHIFT", "Return", exec_cmd("$HOME/.config/hypr/scripts/Dropterminal.sh kitty"), { description = "Drop-down terminal" })
 
-unbind("SUPER ALT", "mouse_down")
-unbind("SUPER ALT", "mouse_up")
-unbind("SUPER", "mouse_down")
-unbind("SUPER", "mouse_up")
-
 rebind("SUPER CTRL ALT", "B", exec_cmd("pkill -SIGUSR1 waybar"), { description = "Toggle Waybar" })
 rebind("SUPER CTRL", "B", exec_cmd("$HOME/.config/hypr/scripts/WaybarStyles.sh"), { description = "Waybar styles menu" })
 rebind("SUPER ALT", "B", exec_cmd("$HOME/.config/hypr/scripts/WaybarLayout.sh"), { description = "Waybar layout menu" })

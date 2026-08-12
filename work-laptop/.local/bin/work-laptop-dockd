@@ -2,12 +2,7 @@
 set -euo pipefail
 
 readonly EXTERNAL_DESC="ASUSTek COMPUTER INC ASUS XG49V 0x00020793"
-readonly EXTERNAL_SELECTOR="desc:${EXTERNAL_DESC}"
-readonly EXTERNAL_MODE="3840x1080@143.855"
-readonly EXTERNAL_SCALE="1"
 readonly INTERNAL_OUTPUT="eDP-1"
-readonly INTERNAL_MODE="preferred"
-readonly INTERNAL_SCALE="1.33"
 
 inhibitor_pid=""
 last_state=""
@@ -54,6 +49,22 @@ external_name() {
     | head -n 1
 }
 
+internal_disabled() {
+  hyprctl monitors all -j 2>/dev/null \
+    | jq -e --arg output "${INTERNAL_OUTPUT}" \
+      '.[] | select(.name == $output and .disabled)' >/dev/null
+}
+
+restart_waybar_if_running() {
+  # Waybar can retain a stale layer surface when Hyprland disables or enables
+  # the internal panel. Restart only an already-running service after the
+  # monitor transaction has settled; never start an extra bar instance here.
+  if systemctl --user --quiet is-active waybar.service 2>/dev/null; then
+    sleep 0.25
+    systemctl --user restart waybar.service >/dev/null 2>&1 || true
+  fi
+}
+
 start_lid_inhibitor() {
   if [[ -n "${inhibitor_pid}" ]] && kill -0 "${inhibitor_pid}" 2>/dev/null; then
     return
@@ -79,28 +90,39 @@ stop_lid_inhibitor() {
 apply_docked() {
   local output
 
-  hyprctl keyword monitor "${EXTERNAL_SELECTOR},${EXTERNAL_MODE},0x0,${EXTERNAL_SCALE}" >/dev/null 2>&1 || true
-  hyprctl keyword monitor "${INTERNAL_OUTPUT},disable" >/dev/null 2>&1 || true
+  hyprctl eval \
+    'hl.monitor({output="desc:ASUSTek COMPUTER INC ASUS XG49V 0x00020793",mode="3840x1080@143.855",position="0x0",scale=1})' \
+    >/dev/null 2>&1 || true
+  hyprctl eval 'hl.monitor({output="eDP-1",disabled=true})' >/dev/null 2>&1 || true
 
   output="$(external_name)"
   if [[ -n "${output}" ]]; then
     for workspace in {1..10}; do
-      hyprctl dispatch moveworkspacetomonitor "${workspace} ${output}" >/dev/null 2>&1 || true
+      hyprctl eval \
+        "hl.dispatch(hl.dsp.workspace.move({workspace=${workspace},monitor=\"${output}\"}))" \
+        >/dev/null 2>&1 || true
     done
-    hyprctl dispatch focusmonitor "${output}" >/dev/null 2>&1 || true
+    hyprctl eval "hl.dispatch(hl.dsp.focus({monitor=\"${output}\"}))" >/dev/null 2>&1 || true
   fi
 
   start_lid_inhibitor
+  restart_waybar_if_running
 }
 
 apply_undocked() {
   stop_lid_inhibitor
-  hyprctl keyword monitor "${INTERNAL_OUTPUT},${INTERNAL_MODE},auto,${INTERNAL_SCALE}" >/dev/null 2>&1 || true
+  hyprctl eval \
+    'hl.monitor({output="eDP-1",mode="preferred",position="auto",scale=1.33})' \
+    >/dev/null 2>&1 || true
+  restart_waybar_if_running
 }
 
 apply_ac_only() {
   start_lid_inhibitor
-  hyprctl keyword monitor "${INTERNAL_OUTPUT},${INTERNAL_MODE},auto,${INTERNAL_SCALE}" >/dev/null 2>&1 || true
+  hyprctl eval \
+    'hl.monitor({output="eDP-1",mode="preferred",position="auto",scale=1.33})' \
+    >/dev/null 2>&1 || true
+  restart_waybar_if_running
 }
 
 while true; do
@@ -112,7 +134,14 @@ while true; do
     state="undocked"
   fi
 
-  if [[ "${state}" != "${last_state}" ]]; then
+  profile_drifted=false
+  if [[ "${state}" == "docked" ]] && ! internal_disabled; then
+    profile_drifted=true
+  elif [[ "${state}" != "docked" ]] && internal_disabled; then
+    profile_drifted=true
+  fi
+
+  if [[ "${state}" != "${last_state}" || "${profile_drifted}" == "true" ]]; then
     case "${state}" in
       docked) apply_docked ;;
       ac-only) apply_ac_only ;;

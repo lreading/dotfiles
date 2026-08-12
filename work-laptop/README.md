@@ -29,6 +29,21 @@ sudo install -Dm755 work-laptop/system/usr/local/sbin/work-laptop-reset-astro-us
 
 The shared Hyprland startup config loads `work_laptop.lua` when this package is
 installed. Its helper scripts start automatically on the next Hyprland login.
+On this machine, Super+0 opens workspace 10 with the `tkhq` tmux session. That
+session starts on a `Notes` window running Neovim in `~/notes/`. Super+8 opens
+workspace 8 with the `personal` tmux session. The personal-laptop workspace 1/2
+and `~/TODO.md` startup does not apply. The work-only startup helper also opens
+Slack silently on workspace 9 and returns focus to workspace 10.
+
+Vivaldi windows are not launched or moved automatically. Vivaldi uses one
+process for multiple profiles, and Hyprland cannot reliably distinguish a Work
+window from a Personal window. The Default/Work window belongs on workspace 10
+and the Personal window belongs on workspace 8, but startup automation must not
+infer profile identity from window timing or titles.
+
+The work package also installs `vivaldi-work.desktop`; startup registers it for
+HTTP, HTTPS, and HTML so external links always target Vivaldi's Default/Work
+profile rather than the most recently used profile.
 The Turnkey aliases are loaded from the package-specific Bash alias fragment;
 the shared `~/.bash_aliases` remains usable on non-work systems.
 

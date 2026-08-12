@@ -19,7 +19,7 @@ hl.config({
     fullscreen_opacity = 1.0, dim_inactive = true, dim_strength = 0.1,
     dim_special = 0.8,
     shadow = {
-      enabled = true, range = 2, render_power = 1,
+      enabled = true, range = 3, render_power = 1,
       color = color("color12", "rgba(8db4ffff)"),
       color_inactive = color("color10", "rgba(5f6578ff)"),
     },

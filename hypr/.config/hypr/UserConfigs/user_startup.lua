@@ -20,7 +20,8 @@ local startup_commands = {
   "gnome-keyring-daemon --start --components=secrets",
 }
 local function run_startup_commands()
-  for _, cmd in ipairs(startup_commands) do exec_once(cmd) end
+  local commands = rawget(_G, "KOOLDOTS_USER_STARTUP_COMMANDS") or startup_commands
+  for _, cmd in ipairs(commands) do exec_once(cmd) end
 end
 
 -- Hyprlang's `[workspace N silent] command` prefix is not shell syntax. The
@@ -47,15 +48,24 @@ local function launch_window_once(id, command, rules)
   end
 end
 
+local default_session_windows = {
+  {
+    id = "kitty-tmux",
+    command = "kitty --class hypr-startup-kitty --name hypr-startup-tmux -T hypr-startup-tmux -e tmux new-session -n TODO 'nvim TODO.md' \\; new-window \\; select-window -t :TODO",
+    rules = { workspace = "1 silent", no_initial_focus = true },
+  },
+  {
+    id = "vivaldi",
+    command = "vivaldi",
+    rules = { workspace = "2 silent", no_initial_focus = true },
+  },
+}
+
 local function launch_session_windows()
-  launch_window_once("kitty-tmux", "kitty --class hypr-startup-kitty --name hypr-startup-tmux -T hypr-startup-tmux -e tmux new-session -n TODO 'nvim TODO.md' \\; new-window \\; select-window -t :TODO", {
-    workspace = "1 silent",
-    no_initial_focus = true,
-  })
-  launch_window_once("vivaldi", "vivaldi", {
-    workspace = "2 silent",
-    no_initial_focus = true,
-  })
+  local windows = rawget(_G, "KOOLDOTS_SESSION_WINDOWS") or default_session_windows
+  for _, window in ipairs(windows) do
+    launch_window_once(window.id, window.command, window.rules)
+  end
 end
 
 -- The vendor monitor module is loaded after the UserConfigs modules. Apply
@@ -70,7 +80,10 @@ end
 -- Portmaster's launcher forks, so its workspace/focus behavior is defined by
 -- the class rule in user_window_rules.lua rather than PID-bound exec rules.
 local function launch_portmaster_once()
-  exec_once("portmaster --with-prompts --with-notifications")
+  local installed = os.execute("command -v portmaster >/dev/null 2>&1")
+  if installed == true or installed == 0 then
+    exec_once("portmaster --with-prompts --with-notifications")
+  end
 end
 
 if hl and hl.on then
