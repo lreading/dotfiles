@@ -55,6 +55,52 @@ internal_disabled() {
       '.[] | select(.name == $output and .disabled)' >/dev/null
 }
 
+move_clients_between_workspaces() {
+  local class_pattern="$1"
+  local source_workspace="$2"
+  local target_workspace="$3"
+  local address
+
+  while IFS= read -r address; do
+    [[ -n "$address" ]] || continue
+    hyprctl eval \
+      "local w=hl.get_window(\"address:${address}\"); if w then hl.dispatch(hl.dsp.window.move({workspace=${target_workspace},window=w,follow=false})) end" \
+      >/dev/null 2>&1 || true
+  done < <(
+    hyprctl clients -j 2>/dev/null \
+      | jq -r --arg class_pattern "$class_pattern" --arg workspace "$source_workspace" '
+          .[]
+          | select((.class // "") | test($class_pattern))
+          | select(.workspace.name == $workspace)
+          | .address
+        '
+  )
+}
+
+apply_application_profile() {
+  local profile="$1"
+
+  case "$profile" in
+    desktop)
+      # Restore the established external-display application layout. Vivaldi
+      # profile identity comes from its previous mode-specific workspace, not
+      # its shared class, title, or process.
+      move_clients_between_workspaces '^kitty-work$' 1 10
+      move_clients_between_workspaces '^kitty-personal$' 5 8
+      move_clients_between_workspaces '^[Vv]ivaldi(-stable)?$' 2 10
+      move_clients_between_workspaces '^[Vv]ivaldi(-stable)?$' 4 8
+      move_clients_between_workspaces '^([Ss]lack|com.slack.Slack)$' 10 9
+      ;;
+    laptop)
+      move_clients_between_workspaces '^kitty-work$' 10 1
+      move_clients_between_workspaces '^kitty-personal$' 8 5
+      move_clients_between_workspaces '^[Vv]ivaldi(-stable)?$' 10 2
+      move_clients_between_workspaces '^[Vv]ivaldi(-stable)?$' 8 4
+      move_clients_between_workspaces '^([Ss]lack|com.slack.Slack)$' 9 10
+      ;;
+  esac
+}
+
 restart_waybar_if_running() {
   # Waybar can retain a stale layer surface when Hyprland disables or enables
   # the internal panel. Restart only an already-running service after the
@@ -106,6 +152,7 @@ apply_docked() {
   fi
 
   start_lid_inhibitor
+  apply_application_profile desktop
   restart_waybar_if_running
 }
 
@@ -114,6 +161,7 @@ apply_undocked() {
   hyprctl eval \
     'hl.monitor({output="eDP-1",mode="preferred",position="auto",scale=1.33})' \
     >/dev/null 2>&1 || true
+  apply_application_profile laptop
   restart_waybar_if_running
 }
 
@@ -122,6 +170,7 @@ apply_ac_only() {
   hyprctl eval \
     'hl.monitor({output="eDP-1",mode="preferred",position="auto",scale=1.33})' \
     >/dev/null 2>&1 || true
+  apply_application_profile laptop
   restart_waybar_if_running
 }
 

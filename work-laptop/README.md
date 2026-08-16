@@ -29,17 +29,31 @@ sudo install -Dm755 work-laptop/system/usr/local/sbin/work-laptop-reset-astro-us
 
 The shared Hyprland startup config loads `work_laptop.lua` when this package is
 installed. Its helper scripts start automatically on the next Hyprland login.
-On this machine, Super+0 opens workspace 10 with the `tkhq` tmux session. That
-session starts on a `Notes` window running Neovim in `~/notes/`. Super+8 opens
-workspace 8 with the `personal` tmux session. The personal-laptop workspace 1/2
-and `~/TODO.md` startup does not apply. The work-only startup helper also opens
-Slack silently on workspace 9 and returns focus to workspace 10.
+The work-only startup helper detects the ASUS external display by its monitor
+description and selects one of two application layouts:
 
-Vivaldi windows are not launched or moved automatically. Vivaldi uses one
-process for multiple profiles, and Hyprland cannot reliably distinguish a Work
-window from a Personal window. The Default/Work window belongs on workspace 10
-and the Personal window belongs on workspace 8, but startup automation must not
-infer profile identity from window timing or titles.
+- Desktop mode preserves the existing layout exactly: the Default/Work Vivaldi
+  profile and `tkhq` Kitty share workspace 10, the Personal Vivaldi profile and
+  `personal` Kitty share workspace 8, and Slack uses workspace 9.
+- Laptop mode uses `tkhq` Kitty on workspace 1, Default/Work Vivaldi on
+  workspace 2, Personal Vivaldi on workspace 4, `personal` Kitty on workspace
+  5, and Slack on workspace 10.
+
+The dock watcher reapplies these targets when the external display is connected
+or removed. It moves Vivaldi windows only from their established workspace in
+the previous profile; it never guesses profile identity from titles or closes a
+browser window.
+
+The `tkhq` session starts on a `notes` window running Neovim in `~/notes/`.
+The personal-laptop workspace 1/2 and `~/TODO.md` startup does not apply.
+
+At a clean login, the helper restores the Default/Work Vivaldi profile and then
+the Personal (`Profile 1`) profile on the workspaces selected above. In desktop
+mode, each Vivaldi window is placed left of its Kitty window. The launches are
+sequential and start only when no Vivaldi window already exists, because Vivaldi
+uses one process for multiple profiles and Hyprland cannot otherwise identify a
+window's profile reliably. Existing browser windows are never reclassified or
+moved.
 
 The work package also installs `vivaldi-work.desktop`; startup registers it for
 HTTP, HTTPS, and HTML so external links always target Vivaldi's Default/Work

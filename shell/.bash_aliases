@@ -3,6 +3,10 @@
 export VISUAL=nvim
 export EDITOR="$VISUAL"
 
+mkcd() {
+  mkdir -p "$1" && cd "$1"
+}
+
 alias x="clear"
 alias ll="ls -lah --color"
 alias kc="kubectl"
