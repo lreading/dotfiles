@@ -44,8 +44,10 @@ or removed. It moves Vivaldi windows only from their established workspace in
 the previous profile; it never guesses profile identity from titles or closes a
 browser window.
 
-The `tkhq` session starts on a `notes` window running Neovim in `~/notes/`.
-The personal-laptop workspace 1/2 and `~/TODO.md` startup does not apply.
+The `tkhq` session defaults new windows to `~/`, while its initial `notes`
+window explicitly changes to `~/notes/` before starting Neovim. Pane splits
+continue to inherit the active pane's working directory. The personal-laptop
+workspace 1/2 and `~/TODO.md` startup does not apply.
 
 At a clean login, the helper restores the Default/Work Vivaldi profile and then
 the Personal (`Profile 1`) profile on the workspaces selected above. In desktop

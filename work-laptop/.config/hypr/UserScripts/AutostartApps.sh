@@ -168,7 +168,7 @@ launch_vivaldi_profiles() {
 ensure_work_notes_window() {
   if ! tmux has-session -t "=${WORK_TMUX_SESSION}" 2>/dev/null; then
     tmux new-session -d -s "$WORK_TMUX_SESSION" -n notes \
-      -c "$HOME/notes" 'exec nvim .'
+      -c "$HOME" "cd \"$HOME/notes\" && exec nvim ."
   elif ! tmux list-windows -t "=${WORK_TMUX_SESSION}" -F '#{window_name}' \
     | grep -Fxq notes; then
     tmux new-window -d -t "${WORK_TMUX_SESSION}:" -n notes \
