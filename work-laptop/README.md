@@ -12,6 +12,8 @@ Docked workstation behavior for this laptop:
 - restores normal lid behavior on battery
 - disables Wi-Fi while Ethernet is connected, and re-enables Wi-Fi when
   Ethernet is disconnected
+- switches active audio streams to newly connected physical outputs, including
+  the Framework Audio Expansion Card and the desktop USB audio adapter
 - provides a manual Astro MixAmp hub-port reset command
 
 Install home-managed files from the repo root:
@@ -19,6 +21,7 @@ Install home-managed files from the repo root:
 ```bash
 stow work-laptop
 hyprctl reload
+systemctl --user restart pipewire-pulse.service
 ```
 
 Install the optional manual Astro reset helper:

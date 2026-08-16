@@ -27,8 +27,8 @@ The related configs in this repo are user-owned configs, not a complete fork or 
 - `local-bin`: user scripts in `~/.local/bin`, including git worktree helpers.
 - `sddm`: source for the mutable `simple_sddm_2` theme settings and a deploy
   helper for its system-owned files.
-- `work-laptop`: optional Framework dock, network, USB, Hyprland, and shell
-  customizations. Stow this package only on the work laptop.
+- `work-laptop`: optional Framework dock, network, USB, audio, Hyprland, and
+  shell customizations. Stow this package only on the work laptop.
 
 The repo-level `.stowrc` targets `~`, so stow commands can be run from the repo root without passing `--target`.
 
