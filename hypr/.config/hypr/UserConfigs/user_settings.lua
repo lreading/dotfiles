@@ -40,6 +40,6 @@ hl.config({
   },
 })
 
--- Preserve the pre-migration user override that disabled the vendor's
--- three-finger workspace gesture.
-hl.gesture({ fingers = 3, direction = "horizontal", action = "unset" })
+-- The active migrated system settings define no three-finger workspace
+-- gesture. Do not call `unset`: Hyprland 0.56 rejects removal of a gesture
+-- that does not exist.
