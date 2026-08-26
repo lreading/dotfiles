@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+readonly AUTOSTART_LOCK="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/work-laptop-autostart.lock"
+exec 9>"$AUTOSTART_LOCK"
+flock -n 9 || exit 0
+
 readonly EXTERNAL_DESC="ASUSTek COMPUTER INC ASUS XG49V 0x00020793"
 readonly WORK_TMUX_SESSION="${HYPR_AUTOSTART_TMUX_SESSION:-tkhq}"
 readonly PERSONAL_TMUX_SESSION="${HYPR_AUTOSTART_PERSONAL_TMUX_SESSION:-personal}"
@@ -165,20 +169,6 @@ launch_vivaldi_profiles() {
   fi
 }
 
-ensure_work_notes_window() {
-  if ! tmux has-session -t "=${WORK_TMUX_SESSION}" 2>/dev/null; then
-    tmux new-session -d -s "$WORK_TMUX_SESSION" -n notes \
-      -c "$HOME" "cd \"$HOME/notes\" && exec nvim ."
-  elif ! tmux list-windows -t "=${WORK_TMUX_SESSION}" -F '#{window_name}' \
-    | grep -Fxq notes; then
-    tmux new-window -d -t "${WORK_TMUX_SESSION}:" -n notes \
-      -c "$HOME/notes" 'exec nvim .'
-  fi
-
-  tmux set-option -w -t "${WORK_TMUX_SESSION}:notes" automatic-rename off
-  tmux select-window -t "${WORK_TMUX_SESSION}:notes"
-}
-
 ensure_work_default_browser() {
   local mime_type
 
@@ -227,7 +217,6 @@ fi
 
 work_kitty_filter="(.workspace.name == \"${WORKSPACE_WORK}\" and .class == \"kitty-work\")"
 wait_for_client ".[] | select(${work_kitty_filter})" || true
-ensure_work_notes_window
 work_kitty_address="$(client_address "$work_kitty_filter")"
 focus_workspace "$WORKSPACE_PERSONAL"
 personal_kitty_address="$(client_address "(.workspace.name == \"${WORKSPACE_PERSONAL}\" and .class == \"kitty-personal\")")"
