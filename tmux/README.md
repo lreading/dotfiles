@@ -12,7 +12,7 @@ The Catppuccin modules are kept under `~/.config/tmux` instead of `~/.tmux/plugi
 Install tmux and TPM:
 
 ```bash
-sudo pacman -S tmux
+sudo pacman -S tmux inetutils
 git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 ```
 

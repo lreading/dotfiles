@@ -213,7 +213,6 @@ else
 fi
 
 ensure_work_default_browser
-ensure_work_notes_window
 
 # A Vivaldi process can own windows from multiple profiles, while Hyprland
 # exposes only the common process/class. Existing windows are left untouched;
@@ -223,11 +222,12 @@ focus_workspace "$WORKSPACE_WORK"
 work_kitty_address="$(client_address "(.workspace.name == \"${WORKSPACE_WORK}\" and .class == \"kitty-work\")")"
 if [[ -z "$work_kitty_address" ]]; then
   exec_on_workspace "$WORKSPACE_WORK" \
-    "kitty --class kitty-work --title notes -e tmux attach-session -t ${WORK_TMUX_SESSION}"
+    "kitty --class kitty-work --title notes -e tmux new-session -A -s ${WORK_TMUX_SESSION} -n notes -c ${HOME} 'cd \"${HOME}/notes\" && exec nvim .'"
 fi
 
 work_kitty_filter="(.workspace.name == \"${WORKSPACE_WORK}\" and .class == \"kitty-work\")"
 wait_for_client ".[] | select(${work_kitty_filter})" || true
+ensure_work_notes_window
 work_kitty_address="$(client_address "$work_kitty_filter")"
 focus_workspace "$WORKSPACE_PERSONAL"
 personal_kitty_address="$(client_address "(.workspace.name == \"${WORKSPACE_PERSONAL}\" and .class == \"kitty-personal\")")"
