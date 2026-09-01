@@ -44,6 +44,30 @@ wait_for_client() {
   return 1
 }
 
+wait_for_tmux_restore() {
+  local resurrect_dir=""
+
+  for _ in {1..100}; do
+    if resurrect_dir="$(tmux show-option -gqv @resurrect-dir 2>/dev/null)"; then
+      break
+    fi
+    sleep 0.1
+  done
+
+  [[ -n "$resurrect_dir" ]] || return 1
+  resurrect_dir="${resurrect_dir/#\~/$HOME}"
+  [[ -e "$resurrect_dir/last" ]] || return 0
+
+  for _ in {1..300}; do
+    if [[ "$(tmux show-option -gqv @dotfiles-resurrect-restored)" == 1 ]]; then
+      return 0
+    fi
+    sleep 0.1
+  done
+
+  return 1
+}
+
 client_address() {
   local jq_filter="$1"
 
@@ -218,6 +242,16 @@ fi
 work_kitty_filter="(.workspace.name == \"${WORKSPACE_WORK}\" and .class == \"kitty-work\")"
 wait_for_client ".[] | select(${work_kitty_filter})" || true
 work_kitty_address="$(client_address "$work_kitty_filter")"
+
+# Resurrect restores the session that was active when it saved, which can move
+# this first client away from the requested work session. Keep it as the only
+# client until restore finishes, then put it back before attaching personal.
+wait_for_tmux_restore || true
+mapfile -t tmux_clients < <(tmux list-clients -F '#{client_tty}')
+if ((${#tmux_clients[@]} == 1)); then
+  tmux switch-client -c "${tmux_clients[0]}" -t "$WORK_TMUX_SESSION"
+fi
+
 focus_workspace "$WORKSPACE_PERSONAL"
 personal_kitty_address="$(client_address "(.workspace.name == \"${WORKSPACE_PERSONAL}\" and .class == \"kitty-personal\")")"
 if [[ -z "$personal_kitty_address" ]]; then

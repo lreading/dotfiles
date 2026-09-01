@@ -3,9 +3,18 @@ return {
 		"folke/todo-comments.nvim",
 		dependencies = { "nvim-lua/plenary.nvim" },
 		opts = {
-			alt = { "BUG", "LEO" },
+			keywords = {
+				LEO = { icon = " ", color = "error" },
+			},
+			highlight = {
+				comments_only = false,
+				pattern = ".*<(KEYWORDS)\\s*[-:]",
+			},
+			search = {
+				pattern = "\\b(KEYWORDS)\\s*[-:]",
+			},
 		},
-		config = function()
+		config = function(_, opts)
 			local comments = require("todo-comments")
 
 			vim.keymap.set(
@@ -23,7 +32,7 @@ return {
 			--   comments.jump_prev()
 			-- end, { desc = "Previous todo comment" })
 
-			comments.setup()
+			comments.setup(opts)
 		end,
 	},
 }
