@@ -10,6 +10,8 @@ mkcd() {
 alias x="clear"
 alias ll="ls -lah --color"
 alias kc="kubectl"
+alias utcdate="date -u +%FT%T.%3NZ"
+alias isodate="date -u +%FT%T.%3NZ"
 
 # Bash Completion for the kubectl alias
 complete -o default -F __start_kubectl kc
