@@ -41,3 +41,11 @@ if not is_work_laptop then
 end
 
 hl.window_rule({ match = { class = "^([Ss]lack|com.slack.Slack)$" }, workspace = "9 silent" })
+
+-- Threat Dragon's Linux desktop/E2E executable uses `threat-dragon`; match the
+-- packaged app ID too so test windows stay off the active workspace.
+hl.window_rule({
+  match = { class = "^(threat-dragon|org\\.owasp\\.threatdragon)$" },
+  workspace = "6 silent",
+  no_initial_focus = true,
+})
