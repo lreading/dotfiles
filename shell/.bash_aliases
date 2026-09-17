@@ -10,6 +10,8 @@ mkcd() {
 alias x="clear"
 alias ll="ls -lah --color"
 alias kc="kubectl"
+alias codex-personal='CODEX_HOME="$HOME/.codex-personal" codex'
+alias codex-work="codex"
 
 # Bash Completion for the kubectl alias
 complete -o default -F __start_kubectl kc
