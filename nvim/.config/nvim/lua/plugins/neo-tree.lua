@@ -69,6 +69,25 @@ return {
 				auto_close = true,
 			})
 
+			-- `:wall` writes several buffers before the UI gets a chance to redraw.
+			-- Refresh the modified markers once all of those writes have completed.
+			local refresh_pending = false
+			vim.api.nvim_create_autocmd("BufWritePost", {
+				callback = function()
+					if refresh_pending then
+						return
+					end
+					refresh_pending = true
+					vim.schedule(function()
+						refresh_pending = false
+						require("neo-tree.sources.manager").opened_buffers_changed("filesystem", {
+							opened_buffers = require("neo-tree.utils").get_opened_buffers(),
+						})
+						require("lualine").refresh({ force = true })
+					end)
+				end,
+			})
+
 			-- Open Neo-tree on startup
 			-- vim.api.nvim_create_autocmd("VimEnter", {
 			-- 	callback = function()
