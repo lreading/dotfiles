@@ -13,7 +13,7 @@ Personal overrides for LinuxBeginnings Hyprland-Dots. See the [root README](../R
 
 Upstream uses `copy.sh` to copy files. It does not keep Stow links. This uses the installed vendor script's stash-and-pull flow.
 
-1. Commit this repo. Then run:
+1. Commit this repo. Make sure you know where the upstream repos are stored and update this script, then run:
 
 ```bash
 arch_dir=$HOME/dev/arch-hyprland
