@@ -5,9 +5,10 @@ set -u
 # systemd stop/start race creates two Waybar processes at login.
 if command -v systemctl >/dev/null 2>&1; then
     load_state="$(systemctl --user show waybar.service --property=LoadState --value 2>/dev/null || true)"
-    if [ -n "$load_state" ] && [ "$load_state" != not-found ]; then
-        systemctl --user start waybar.service >/dev/null 2>&1 || true
-        exit 0
+    if [ -n "$load_state" ] && [ "$load_state" != not-found ] && [ "$load_state" != masked ]; then
+        if systemctl --user start waybar.service >/dev/null 2>&1; then
+            exit 0
+        fi
     fi
 fi
 
