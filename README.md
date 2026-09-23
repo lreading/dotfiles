@@ -83,25 +83,7 @@ keeps its original `.conf` path until the compositor restarts.
 
 ## Hyprland-Dots Updates
 
-Hyprland and Hyprland-Dots move quickly, especially on Arch. Treat updates as a rebase of this user layer onto upstream:
-
-```bash
-cd ~/Hyprland-Dots
-git pull --ff-only
-```
-
-Run the upstream update process from `Hyprland-Dots`, then re-apply this dotfiles layer:
-
-```bash
-cd ~/dev/dotfiles
-stow --adopt hypr waybar swaync kitty
-git diff
-git restore .
-~/.config/hypr/UserScripts/ApplyUserPreferences.sh
-hyprctl reload
-pkill -SIGUSR2 waybar || hyprctl dispatch exec waybar
-swaync-client --reload-css
-```
+Use the recovery-safe update steps in [hypr/README.md](hypr/README.md).
 
 ## Add A New Stow Package
 
