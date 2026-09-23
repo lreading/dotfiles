@@ -1,6 +1,6 @@
 -- Work-laptop-only monitor, workspace, and background-service settings.
 local config_home = os.getenv("XDG_CONFIG_HOME") or ((os.getenv("HOME") or "") .. "/.config")
-local startup = dofile(config_home .. "/hypr/lua/user_startup_helper.lua")
+local startup = dofile(config_home .. "/hypr/lua/work_startup_helper.lua")
 local external_monitor = "desc:ASUSTek COMPUTER INC ASUS XG49V 0x00020793"
 
 -- The work-laptop autostart helper owns application placement. An empty table
