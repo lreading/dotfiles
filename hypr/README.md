@@ -11,26 +11,26 @@ Personal overrides for LinuxBeginnings Hyprland-Dots. See the [root README](../R
 
 ## Update upstream
 
-Upstream uses `copy.sh` to copy files. It does not keep Stow links. This follows the [official update guide](https://github.com/LinuxBeginnings/Hyprland-Dots/blob/main/docs/HOWTO-Upgrade-Dotfiles.md) and keeps the old clones as backups.
+Upstream uses `copy.sh` to copy files. It does not keep Stow links. This uses the installed vendor script's stash-and-pull flow.
 
 1. Commit this repo. Then run:
 
-   ```bash
-   update_stamp=$(date +%Y%m%d-%H%M%S)
-   arch_dir=$HOME/Arch-Hyprland
-   dots_dir=$HOME/Hyprland-Dots
-   [[ ! -e "$arch_dir" ]] || mv "$arch_dir" "$arch_dir.before-$update_stamp"
-   git clone --depth 1 https://github.com/LinuxBeginnings/Arch-Hyprland.git "$arch_dir"
-   bash "$arch_dir/install-scripts/update-deps.sh"
-   [[ ! -e "$dots_dir" ]] || mv "$dots_dir" "$dots_dir.before-$update_stamp"
-   git clone --depth 1 https://github.com/LinuxBeginnings/Hyprland-Dots.git "$dots_dir"
-   bash "$dots_dir/copy.sh" --express-upgrade
-   cd "$HOME/dev/dotfiles"
-   stow --adopt hypr waybar swaync kitty
-   git restore .
-   bash ~/.config/hypr/UserScripts/ApplyUserPreferences.sh
-   hyprctl reload
-   ```
+```bash
+arch_dir=$HOME/dev/arch-hyprland
+dots_dir=$arch_dir/Hyprland-Dots
+git -C "$dots_dir" stash push -m "before upstream refresh"
+git -C "$arch_dir" pull --ff-only
+git -C "$dots_dir" pull --ff-only
+bash "$arch_dir/install-scripts/update-deps.sh"
+bash "$dots_dir/copy.sh" --express-upgrade
+cd "$HOME/dev/dotfiles"
+stow --adopt hypr waybar swaync kitty
+stow --adopt work-laptop # Only on the work laptop.
+git restore .
+bash ~/.config/hypr/UserScripts/ApplyUserPreferences.sh
+hyprctl reload
+
+```
 
 ## Debug startup
 
