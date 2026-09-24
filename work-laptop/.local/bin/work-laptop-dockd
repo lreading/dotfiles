@@ -103,11 +103,24 @@ apply_application_profile() {
 
 restart_waybar_if_running() {
   # Waybar can retain a stale layer surface when Hyprland disables or enables
-  # the internal panel. Restart only an already-running service after the
-  # monitor transaction has settled; never start an extra bar instance here.
+  # the internal panel. Restart the existing bar after the monitor settles.
+  if ! pgrep -x waybar >/dev/null 2>&1; then
+    return
+  fi
+
+  sleep 0.25
   if systemctl --user --quiet is-active waybar.service 2>/dev/null; then
-    sleep 0.25
     systemctl --user restart waybar.service >/dev/null 2>&1 || true
+  else
+    pkill -INT -x waybar >/dev/null 2>&1 || true
+    for _ in {1..20}; do
+      pgrep -x waybar >/dev/null 2>&1 || break
+      sleep 0.1
+    done
+    if pgrep -x waybar >/dev/null 2>&1; then
+      pkill -KILL -x waybar >/dev/null 2>&1 || true
+    fi
+    "$HOME/.config/hypr/scripts/WaybarStartup.sh" >/dev/null 2>&1 || true
   fi
 }
 
