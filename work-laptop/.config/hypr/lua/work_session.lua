@@ -14,6 +14,13 @@ local function kitty(kind)
   startup.launch("kitty-" .. kind, "$HOME/.config/hypr/UserScripts/LaunchWorkKitty.sh " .. kind)
 end
 
+local function finish()
+  kitty("personal")
+  startup.run("focus work workspace", function()
+    hl.dispatch(hl.dsp.focus({ workspace = workspaces.work }))
+  end)
+end
+
 local function personal_browser()
   stage = "personal"
   startup.launch("vivaldi-personal", "/usr/bin/vivaldi-stable --profile-directory='Profile 1' --new-window")
@@ -21,7 +28,7 @@ local function personal_browser()
     if stage ~= "personal" then return end
     startup.note("TIMEOUT waiting for personal Vivaldi window")
     stage = nil
-    kitty("personal")
+    finish()
   end, { timeout = 20000, type = "oneshot" })
 end
 
@@ -44,7 +51,7 @@ local function on_window_open(window)
         place(window, workspaces.personal_browser)
         startup.note("MAPPED personal Vivaldi to workspace " .. workspaces.personal_browser)
         stage = nil
-        kitty("personal")
+        finish()
       end
     end
   end)
@@ -64,7 +71,7 @@ local function start()
   if #hl.get_windows({ class = "vivaldi-stable" }) > 0 then
     startup.note("SKIP Vivaldi launch: an existing window cannot identify its profile")
     kitty("work")
-    kitty("personal")
+    finish()
     return
   end
 
