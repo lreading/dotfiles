@@ -14,10 +14,7 @@ The related configs in this repo are user-owned configs, not a complete fork or 
 
 ## Packages
 
-- `hypr`: user override layer for Hyprland-Dots:
-  - `~/.config/hypr/UserConfigs`
-  - `~/.config/hypr/UserScripts`
-  - `~/.config/hypr/UserPrefs`
+- `hypr`: user settings and helpers for Hyprland-Dots.
 - `waybar`: user Waybar override files and selected style/config files:
   - `~/.config/waybar/UserModules`
   - `~/.config/waybar/configs/[TOP] Default Laptop`
@@ -41,31 +38,16 @@ git clone https://github.com/LinuxBeginnings/Arch-Hyprland.git
 git clone https://github.com/LinuxBeginnings/Hyprland-Dots.git
 ```
 
-Run the upstream installers according to those repos. After the upstream config exists, install this user layer:
+Run the upstream installers according to those repos. After the upstream config exists, check for conflicts, then install this user layer:
 
 ```bash
 cd ~/dev/dotfiles
-stow --adopt hypr waybar swaync kitty nvim tmux local-bin sddm shell
-stow --adopt work-laptop # Only on the work laptop.
-git restore .
-```
-
-`--adopt` is useful on a live machine because it moves existing matching files into the repo and replaces them with symlinks. `git restore .` then puts the repo contents back to the committed source of truth. On a fresh machine where the target files do not exist, plain stow is enough:
-
-```bash
-cd ~/dev/dotfiles
+stow -nv hypr waybar swaync kitty nvim tmux local-bin sddm shell
 stow hypr waybar swaync kitty nvim tmux local-bin sddm shell
-stow work-laptop # Only on the work laptop.
+stow -nv work-laptop && stow work-laptop # Only on the work laptop.
 ```
 
-After stowing the Hyprland layer, apply the local post-upstream preferences (or just reboot):
-
-```bash
-~/.config/hypr/UserScripts/ApplyUserPreferences.sh
-hyprctl reload
-pkill -SIGUSR2 waybar || hyprctl dispatch exec waybar
-swaync-client --reload-css
-```
+If Stow reports a conflict, inspect the live file before moving it. Do not use `--adopt` and `git restore` as a routine install step: they can hide changes.
 
 This user layer uses Hyprland's Lua configuration. If Hyprland-Dots installed
 the Lua entrypoint as `hyprland.lua.disable`, enable and verify it while keeping
@@ -83,50 +65,8 @@ keeps its original `.conf` path until the compositor restarts.
 
 ## Hyprland-Dots Updates
 
-Use the recovery-safe update steps in [hypr/README.md](hypr/README.md).
+Use the update steps in [hypr/README.md](hypr/README.md).
 
-## Add A New Stow Package
+## Add a Stow package
 
-Use one package per app or concern. The package path must mirror the path under `$HOME`.
-
-Add one `~/.local/bin` script:
-
-```bash
-cd ~/dev/dotfiles
-mkdir -p local-bin/.local/bin
-cp -a ~/.local/bin/git-worktree-helper.sh local-bin/.local/bin/
-stow -nv local-bin
-stow local-bin
-git add local-bin README.md
-git diff --cached
-```
-
-Add `~/.bash_aliases` as a stowed shell package:
-
-```bash
-cd ~/dev/dotfiles
-mkdir -p shell
-cp -a ~/.bash_aliases shell/.bash_aliases
-stow -nv shell
-stow --adopt shell
-git diff
-git restore shell/.bash_aliases
-git add shell README.md
-git diff --cached
-```
-
-Adopt an existing config directory:
-
-```bash
-cd ~/dev/dotfiles
-mkdir -p rofi/.config
-cp -a ~/.config/rofi rofi/.config/
-stow -nv rofi
-stow --adopt rofi
-git diff
-git restore rofi
-git add rofi README.md
-git diff --cached
-```
-
-Use `stow -nv <package>` before the real stow command. If the dry run shows files outside the package you expected, stop and fix the package layout first.
+Use one package per app or concern. Mirror its path under `$HOME` in the package. Run `stow -nv <package>` before you stow it. If a live file conflicts, compare it with the package file and keep a backup before you move it. Do not use `--adopt` or `git restore` without reviewing each affected file.

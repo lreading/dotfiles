@@ -1,215 +1,83 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-readonly EXTERNAL_DESC="ASUSTek COMPUTER INC ASUS XG49V 0x00020793"
-readonly INTERNAL_OUTPUT="eDP-1"
-
 inhibitor_pid=""
 last_state=""
+last_dp=""
 
-cleanup() {
-  if [[ -n "${inhibitor_pid}" ]] && kill -0 "${inhibitor_pid}" 2>/dev/null; then
-    kill "${inhibitor_pid}" 2>/dev/null || true
-  fi
+release_inhibitor() {
+  [[ -n "$inhibitor_pid" ]] || return 0
+  pkill -TERM -P "$inhibitor_pid" 2>/dev/null || true
+  kill -KILL "$inhibitor_pid" 2>/dev/null || true
+  wait "$inhibitor_pid" 2>/dev/null || true
+  inhibitor_pid=""
 }
-
-terminate() {
-  cleanup
-  exit 0
-}
-
+cleanup() { release_inhibitor; }
 trap cleanup EXIT
-trap terminate INT TERM
+trap 'exit 0' INT TERM
 
 ac_online() {
-  local supply type online
-
+  local supply type
   for supply in /sys/class/power_supply/*; do
-    [[ -e "${supply}/type" ]] || continue
-    type="$(<"${supply}/type")"
-    case "${type}" in
+    [[ -r "$supply/type" ]] || continue
+    type="$(<"$supply/type")"
+    case "$type" in
       Mains|USB|USB_C|USB_PD)
-        online="$(cat "${supply}/online" 2>/dev/null || printf '0')"
-        [[ "${online}" == "1" ]] && return 0
+        [[ "$(cat "$supply/online" 2>/dev/null || true)" == 1 ]] && return 0
         ;;
     esac
   done
-
   return 1
 }
 
-external_connected() {
-  hyprctl monitors all -j 2>/dev/null \
-    | jq -e --arg desc "${EXTERNAL_DESC}" '.[] | select(.description == $desc and (.disabled | not))' >/dev/null
+dp_connected() {
+  local status
+  for status in /sys/class/drm/card*-DP-*/status; do
+    [[ -r "$status" ]] || continue
+    [[ "$(<"$status")" == connected ]] && return 0
+  done
+  return 1
 }
 
-external_name() {
-  hyprctl monitors all -j 2>/dev/null \
-    | jq -r --arg desc "${EXTERNAL_DESC}" '.[] | select(.description == $desc and (.disabled | not)) | .name' \
-    | head -n 1
-}
-
-internal_disabled() {
-  hyprctl monitors all -j 2>/dev/null \
-    | jq -e --arg output "${INTERNAL_OUTPUT}" \
-      '.[] | select(.name == $output and .disabled)' >/dev/null
-}
-
-move_clients_between_workspaces() {
-  local class_pattern="$1"
-  local source_workspace="$2"
-  local target_workspace="$3"
-  local address
-
-  while IFS= read -r address; do
-    [[ -n "$address" ]] || continue
-    hyprctl eval \
-      "local w=hl.get_window(\"address:${address}\"); if w then hl.dispatch(hl.dsp.window.move({workspace=${target_workspace},window=w,follow=false})) end" \
-      >/dev/null 2>&1 || true
-  done < <(
-    hyprctl clients -j 2>/dev/null \
-      | jq -r --arg class_pattern "$class_pattern" --arg workspace "$source_workspace" '
-          .[]
-          | select((.class // "") | test($class_pattern))
-          | select(.workspace.name == $workspace)
-          | .address
-        '
-  )
-}
-
-apply_application_profile() {
-  local profile="$1"
-
-  case "$profile" in
-    desktop)
-      # Restore the established external-display application layout. Vivaldi
-      # profile identity comes from its previous mode-specific workspace, not
-      # its shared class, title, or process.
-      move_clients_between_workspaces '^kitty-work$' 1 10
-      move_clients_between_workspaces '^kitty-personal$' 5 8
-      move_clients_between_workspaces '^[Vv]ivaldi(-stable)?$' 2 10
-      move_clients_between_workspaces '^[Vv]ivaldi(-stable)?$' 4 8
-      move_clients_between_workspaces '^([Ss]lack|com.slack.Slack)$' 10 9
-      ;;
-    laptop)
-      move_clients_between_workspaces '^kitty-work$' 10 1
-      move_clients_between_workspaces '^kitty-personal$' 8 5
-      move_clients_between_workspaces '^[Vv]ivaldi(-stable)?$' 10 2
-      move_clients_between_workspaces '^[Vv]ivaldi(-stable)?$' 8 4
-      move_clients_between_workspaces '^([Ss]lack|com.slack.Slack)$' 9 10
-      ;;
-  esac
-}
-
-restart_waybar_if_running() {
-  # Waybar can retain a stale layer surface when Hyprland disables or enables
-  # the internal panel. Restart the existing bar after the monitor settles.
-  if ! pgrep -x waybar >/dev/null 2>&1; then
-    return
+set_lid_inhibitor() {
+  if [[ "$1" == enabled && -z "$inhibitor_pid" ]]; then
+    systemd-inhibit --what=handle-lid-switch --mode=block \
+      --who=work-laptop-dockd --why="Work laptop on external power" sleep infinity &
+    inhibitor_pid=$!
+  elif [[ "$1" == disabled && -n "$inhibitor_pid" ]]; then
+    release_inhibitor
   fi
-
-  sleep 0.25
-  if systemctl --user --quiet is-active waybar.service 2>/dev/null; then
-    systemctl --user restart waybar.service >/dev/null 2>&1 || true
-  else
-    pkill -INT -x waybar >/dev/null 2>&1 || true
-    for _ in {1..20}; do
-      pgrep -x waybar >/dev/null 2>&1 || break
-      sleep 0.1
-    done
-    if pgrep -x waybar >/dev/null 2>&1; then
-      pkill -KILL -x waybar >/dev/null 2>&1 || true
-    fi
-    "$HOME/.config/hypr/scripts/WaybarStartup.sh" >/dev/null 2>&1 || true
-  fi
-}
-
-start_lid_inhibitor() {
-  if [[ -n "${inhibitor_pid}" ]] && kill -0 "${inhibitor_pid}" 2>/dev/null; then
-    return
-  fi
-
-  systemd-inhibit \
-    --what=handle-lid-switch \
-    --mode=block \
-    --who=work-laptop-dockd \
-    --why="Work laptop on external power" \
-    sleep infinity &
-  inhibitor_pid="$!"
-}
-
-stop_lid_inhibitor() {
-  if [[ -n "${inhibitor_pid}" ]] && kill -0 "${inhibitor_pid}" 2>/dev/null; then
-    kill "${inhibitor_pid}" 2>/dev/null || true
-    wait "${inhibitor_pid}" 2>/dev/null || true
-  fi
-  inhibitor_pid=""
-}
-
-apply_docked() {
-  local output
-
-  hyprctl eval \
-    'hl.monitor({output="desc:ASUSTek COMPUTER INC ASUS XG49V 0x00020793",mode="3840x1080@143.855",position="0x0",scale=1})' \
-    >/dev/null 2>&1 || true
-  hyprctl eval 'hl.monitor({output="eDP-1",disabled=true})' >/dev/null 2>&1 || true
-
-  output="$(external_name)"
-  if [[ -n "${output}" ]]; then
-    for workspace in {1..10}; do
-      hyprctl eval \
-        "hl.dispatch(hl.dsp.workspace.move({workspace=${workspace},monitor=\"${output}\"}))" \
-        >/dev/null 2>&1 || true
-    done
-    hyprctl eval "hl.dispatch(hl.dsp.focus({monitor=\"${output}\"}))" >/dev/null 2>&1 || true
-  fi
-
-  start_lid_inhibitor
-  apply_application_profile desktop
-  restart_waybar_if_running
-}
-
-apply_undocked() {
-  stop_lid_inhibitor
-  hyprctl eval \
-    'hl.monitor({output="eDP-1",mode="preferred",position="auto",scale=1.33})' \
-    >/dev/null 2>&1 || true
-  apply_application_profile laptop
-  restart_waybar_if_running
-}
-
-apply_ac_only() {
-  start_lid_inhibitor
-  hyprctl eval \
-    'hl.monitor({output="eDP-1",mode="preferred",position="auto",scale=1.33})' \
-    >/dev/null 2>&1 || true
-  apply_application_profile laptop
-  restart_waybar_if_running
 }
 
 while true; do
-  if external_connected && ac_online; then
-    state="docked"
-  elif ac_online; then
-    state="ac-only"
+  if dp_connected; then
+    dp=connected
   else
-    state="undocked"
+    dp=disconnected
   fi
 
-  profile_drifted=false
-  if [[ "${state}" == "docked" ]] && ! internal_disabled; then
-    profile_drifted=true
-  elif [[ "${state}" != "docked" ]] && internal_disabled; then
-    profile_drifted=true
+  if [[ -n "$last_dp" && "$dp" != "$last_dp" ]]; then
+    printf 'DISPLAY %s; restarting Waybar\n' "$dp"
+    systemctl --user restart waybar.service || printf 'FAILED to restart Waybar\n' >&2
+  fi
+  last_dp="$dp"
+
+  if [[ "$dp" == connected ]] && ac_online; then
+    state=docked
+  elif ac_online; then
+    state=ac-only
+  else
+    state=battery
   fi
 
-  if [[ "${state}" != "${last_state}" || "${profile_drifted}" == "true" ]]; then
-    case "${state}" in
-      docked) apply_docked ;;
-      ac-only) apply_ac_only ;;
-      undocked) apply_undocked ;;
-    esac
-    last_state="${state}"
+  if [[ "$state" != "$last_state" ]]; then
+    printf 'PROFILE %s\n' "$state"
+    if [[ "$state" == docked ]]; then
+      set_lid_inhibitor enabled
+    else
+      set_lid_inhibitor disabled
+    fi
+    last_state="$state"
   fi
 
   sleep 3

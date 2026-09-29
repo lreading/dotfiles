@@ -13,7 +13,9 @@ Docked workstation behavior for this laptop:
 - disables Wi-Fi while Ethernet is connected, and re-enables Wi-Fi when
   Ethernet is disconnected
 - switches active audio streams to newly connected physical outputs, including
-  the Framework Audio Expansion Card and the desktop USB audio adapter
+  the Framework Audio Expansion Card and the desktop USB audio adapter; the
+  Astro MixAmp outputs remain available to apps but do not take the default
+  when they connect
 - provides a manual Astro MixAmp hub-port reset command
 
 Install home-managed files from the repo root:

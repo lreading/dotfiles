@@ -1,161 +1,21 @@
--- Personal startup commands, separate from vendor startup defaults.
-local session = os.getenv("HYPRLAND_INSTANCE_SIGNATURE") or "default"
-local function shell_quote(value)
-  return "'" .. tostring(value):gsub("'", "'\\''") .. "'"
-end
+local config_home = os.getenv("XDG_CONFIG_HOME") or (os.getenv("HOME") .. "/.config")
+local startup = dofile(config_home .. "/hypr/UserConfigs/startup_log.lua")
+local work_laptop = config_home .. "/hypr/work_laptop.lua"
+local work_file = io.open(work_laptop, "r")
 
-local function journal_event(priority, message)
-  local command = "systemd-cat --identifier=hypr-user-startup --priority="
-    .. shell_quote(priority) .. " -- echo " .. shell_quote(message) .. " >/dev/null 2>&1"
-  os.execute(command)
-end
-
-local function logged_command(label, command)
-  local runner = [[
-label=$1
-command=$2
-printf 'START %s: %s\n' "$label" "$command"
-sh -lc "$command"
-status=$?
-if [ "$status" -eq 0 ]; then
-  printf 'DONE %s: %s\n' "$label" "$command"
+if work_file then
+  work_file:close()
+  startup.include(work_laptop)
 else
-  printf 'FAILED (%s) %s: %s\n' "$status" "$label" "$command"
-fi
-exit 0
-]]
-  return "systemd-cat --identifier=hypr-user-startup --priority=info -- sh -c "
-    .. shell_quote(runner) .. " sh " .. shell_quote(label) .. " " .. shell_quote(command)
-end
+  hl.on("hyprland.start", function()
+    startup.launch("ferdium", "ferdium --force-device-scale-factor=1.2")
+    startup.launch("keyring", "gnome-keyring-daemon --start --components=secrets")
+    startup.launch("kitty-tmux", "kitty --class hypr-startup-kitty --name hypr-startup-tmux -T hypr-startup-tmux -e tmux new-session -n TODO 'nvim TODO.md' \\; new-window \\; select-window -t :TODO")
+    startup.launch("vivaldi", "vivaldi")
 
-local function exec_once(cmd, label)
-  local key = cmd:gsub("[^%w_.-]", "_"):sub(1, 80)
-  local marker = "/tmp/hypr-lua-user-exec-once-" .. session .. "-" .. key
-  local script = "if [ -e " .. shell_quote(marker) .. " ]; then exit 0; fi; "
-    .. "if ! touch " .. shell_quote(marker) .. "; then exit 0; fi; "
-    .. logged_command(label or "command", cmd) .. " & exit 0"
-  os.execute("sh -lc " .. shell_quote(script))
-end
-
-local function run_safely(label, action)
-  local ok, err = pcall(action)
-  if not ok then
-    journal_event("err", "FAILED to queue " .. label .. ": " .. tostring(err))
-  end
-end
-
-local startup_commands = {
-  "$HOME/.config/hypr/UserScripts/RainbowBorders.sh",
-  "$HOME/.config/hypr/UserScripts/ApplyUserPreferences.sh",
-  "$HOME/.config/hypr/UserScripts/StartHypridle.sh",
-  "ferdium --force-device-scale-factor=1.2",
-  "gnome-keyring-daemon --start --components=secrets",
-}
-local function run_startup_commands()
-  local commands = rawget(_G, "KOOLDOTS_USER_STARTUP_COMMANDS") or startup_commands
-  for _, cmd in ipairs(commands) do
-    run_safely("command: " .. cmd, function()
-      exec_once(cmd, "command")
-    end)
-  end
-end
-
--- Hyprlang's `[workspace N silent] command` prefix is not shell syntax. The
--- old startup wrapper executed it with `sh -lc`, which is why Kitty and
--- Vivaldi failed to start. Use the Lua dispatcher and a per-session marker.
-local function launch_window_once(id, command, rules)
-  local marker = "/tmp/hypr-lua-user-window-" .. session .. "-" .. id
-  local marker_file = io.open(marker, "r")
-  if marker_file then
-    marker_file:close()
-    return
-  end
-
-  marker_file = io.open(marker, "w")
-  if not marker_file then
-    journal_event("err", "FAILED to create marker for window " .. id)
-    return
-  end
-  marker_file:close()
-
-  if hl and hl.exec_cmd then
-    -- `hl.exec_cmd` is the Lua API which accepts per-launch window rules.
-    -- The dispatcher variant only accepts the command, so its second argument
-    -- was ignored after the Hyprland Lua migration.
-    local ok, err = pcall(hl.exec_cmd, logged_command("window: " .. id, command), rules)
-    if ok then
-      journal_event("info", "QUEUED window " .. id .. ": " .. command)
-    else
-      journal_event("err", "FAILED to queue window " .. id .. ": " .. tostring(err))
+    local portmaster = os.execute("command -v portmaster >/dev/null 2>&1")
+    if portmaster == true or portmaster == 0 then
+      startup.launch("portmaster", "portmaster --with-prompts --with-notifications")
     end
-  else
-    exec_once(command, "window: " .. id)
-  end
-end
-
-local default_session_windows = {
-  {
-    id = "kitty-tmux",
-    command = "kitty --class hypr-startup-kitty --name hypr-startup-tmux -T hypr-startup-tmux -e tmux new-session -n TODO 'nvim TODO.md' \\; new-window \\; select-window -t :TODO",
-    rules = { workspace = "1 silent", no_initial_focus = true },
-  },
-  {
-    id = "vivaldi",
-    command = "vivaldi",
-    rules = { workspace = "2 silent", no_initial_focus = true },
-  },
-}
-
-local function launch_session_windows()
-  local windows = rawget(_G, "KOOLDOTS_SESSION_WINDOWS") or default_session_windows
-  for _, window in ipairs(windows) do
-    run_safely("window: " .. window.id, function()
-      launch_window_once(window.id, window.command, window.rules)
-    end)
-  end
-end
-
--- The vendor monitor module is loaded after the UserConfigs modules. Apply
--- our monitor file once configuration is fully loaded, and after each reload,
--- so its scale cannot be reset to the vendor default of 1.0.
-local function apply_user_monitors()
-  local config_home = os.getenv("XDG_CONFIG_HOME") or (os.getenv("HOME") .. "/.config")
-  local ok, err = pcall(dofile, config_home .. "/hypr/UserConfigs/monitors.lua")
-  if not ok then print("Failed to apply user monitor settings: " .. tostring(err)) end
-end
-
--- Portmaster's launcher forks, so its workspace/focus behavior is defined by
--- the class rule in user_window_rules.lua rather than PID-bound exec rules.
-local function launch_portmaster_once()
-  local installed = os.execute("command -v portmaster >/dev/null 2>&1")
-  if installed == true or installed == 0 then
-    exec_once("portmaster --with-prompts --with-notifications", "command")
-  end
-end
-
-local function start_user_services()
-  run_safely("user monitors", apply_user_monitors)
-  run_safely("user startup commands", run_startup_commands)
-  run_safely("session windows", launch_session_windows)
-  run_safely("Portmaster", launch_portmaster_once)
-end
-
-if hl and hl.on then
-  hl.on("config.reloaded", apply_user_monitors)
-  hl.on("hyprland.start", start_user_services)
-else
-  start_user_services()
-end
-
--- Machine-specific packages can provide an optional module without making
--- the shared Hyprland configuration depend on that machine.
-do
-  local work_laptop = (os.getenv("XDG_CONFIG_HOME") or (os.getenv("HOME") .. "/.config"))
-    .. "/hypr/work_laptop.lua"
-  local handle = io.open(work_laptop, "r")
-  if handle then
-    handle:close()
-    local ok, err = pcall(dofile, work_laptop)
-    if not ok then print("Failed to load work laptop settings: " .. tostring(err)) end
-  end
+  end)
 end

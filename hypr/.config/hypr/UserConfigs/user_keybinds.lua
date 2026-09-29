@@ -42,9 +42,9 @@ for _, direction in ipairs({
   )
 end
 
-rebind("SUPER SHIFT", "H", exec_cmd("$HOME/.config/hypr/UserScripts/KeyHints.sh"), { description = "Quick cheat sheet" })
+rebind("SUPER SHIFT", "H", exec_cmd("$HOME/.config/hypr/scripts/KeyHints.sh"), { description = "Quick cheat sheet" })
 rebind("SUPER ALT", "R", exec_cmd("$HOME/.config/hypr/scripts/Refresh.sh"), { description = "Refresh bar and menus" })
-rebind("SUPER ALT", "E", exec_cmd("$HOME/.config/hypr/UserScripts/RofiEmoji.sh"), { description = "Emoji menu" })
+rebind("SUPER ALT", "E", exec_cmd("$HOME/.config/hypr/scripts/RofiEmoji.sh"), { description = "Emoji menu" })
 rebind("SUPER", "S", exec_cmd("$HOME/.config/hypr/scripts/RofiSearch.sh"), { description = "Web search" })
 rebind("SUPER ALT", "O", exec_cmd("$HOME/.config/hypr/scripts/ChangeBlur.sh"), { description = "Toggle blur" })
 rebind("SUPER SHIFT", "G", exec_cmd("$HOME/.config/hypr/scripts/GameMode.sh"), { description = "Toggle game mode" })
@@ -73,16 +73,16 @@ rebind("SUPER CTRL", "B", exec_cmd("$HOME/.config/hypr/scripts/WaybarStyles.sh")
 rebind("SUPER ALT", "B", exec_cmd("$HOME/.config/hypr/scripts/WaybarLayout.sh"), { description = "Waybar layout menu" })
 rebind("SUPER SHIFT", "M", exec_cmd("$HOME/.config/hypr/UserScripts/RofiBeats.sh"), { description = "Online music" })
 rebind("SUPER", "W", exec_cmd("$HOME/.config/hypr/UserScripts/WallpaperSelect.sh"), { description = "Select wallpaper" })
-rebind("SUPER SHIFT", "W", exec_cmd("$HOME/.config/hypr/UserScripts/WallpaperEffects.sh"), { description = "Wallpaper effects" })
+rebind("SUPER SHIFT", "W", exec_cmd("$HOME/.config/hypr/scripts/WallpaperEffects.sh"), { description = "Wallpaper effects" })
 rebind("CTRL ALT", "W", exec_cmd("$HOME/.config/hypr/UserScripts/WallpaperRandom.sh"), { description = "Random wallpaper" })
 rebind("SUPER CTRL", "O", hl.dsp.window.set_prop({ prop = "opaque", value = "toggle" }), { description = "Toggle active window opacity" })
-rebind("SUPER SHIFT", "K", exec_cmd("$HOME/.config/hypr/UserScripts/KeyBinds.sh"), { description = "Search keybinds" })
+rebind("SUPER SHIFT", "K", exec_cmd("$HOME/.config/hypr/scripts/KeyBinds.sh"), { description = "Search keybinds" })
 rebind("SUPER SHIFT", "A", exec_cmd("$HOME/.config/hypr/scripts/Animations.sh"), { description = "Animations menu" })
 rebind("SUPER SHIFT", "O", exec_cmd("$HOME/.config/hypr/UserScripts/ZshChangeTheme.sh"), { description = "Change ZSH theme" })
 rebind("ALT_L", "SHIFT_L", exec_cmd("$HOME/.config/hypr/scripts/KeyboardLayout.sh switch"), { description = "Switch keyboard layout globally", locked = true })
 rebind("SHIFT_L", "ALT_L", exec_cmd("$HOME/.config/hypr/scripts/Tak0-Per-Window-Switch.sh"), { description = "Switch keyboard layout per-window", locked = true })
 rebind("SUPER ALT", "C", exec_cmd("$HOME/.config/hypr/UserScripts/RofiCalc.sh"), { description = "Calculator" })
-rebind("SUPER SHIFT", "S", exec_cmd("$HOME/.config/hypr/UserScripts/ScreenShot.sh --swappy"), { description = "Screenshot (swappy)" })
+rebind("SUPER SHIFT", "S", exec_cmd("$HOME/.config/hypr/scripts/ScreenShot.sh --swappy"), { description = "Screenshot (swappy)" })
 
 -- The installed vendor binding predates the Lua dispatcher CLI.  Match the
 -- implementation used by the latest upstream keybinds instead.
@@ -98,3 +98,4 @@ rebind("SUPER CTRL", "K", hl.dsp.window.move({ into_group = "left" }), { descrip
 rebind("SUPER CTRL SHIFT", "K", exec_cmd("$HOME/.config/hypr/scripts/Kitty_themes.sh"), {
   description = "Kitty theme selector",
 })
+unbind("SUPER SHIFT", "B")
