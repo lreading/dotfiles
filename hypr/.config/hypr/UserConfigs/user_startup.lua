@@ -2,6 +2,20 @@ local config_home = os.getenv("XDG_CONFIG_HOME") or (os.getenv("HOME") .. "/.con
 local startup = dofile(config_home .. "/hypr/UserConfigs/startup_log.lua")
 local work_laptop = config_home .. "/hypr/work_laptop.lua"
 local work_file = io.open(work_laptop, "r")
+local monitor_overrides = config_home .. "/hypr/UserConfigs/monitors.lua"
+
+-- hyprland.lua loads the vendor monitor defaults after the user split files.
+-- Re-apply the Stow-managed monitor profile after that load so it wins on both
+-- startup and config reload. monitors.lua selects the work profile when its
+-- optional work-laptop package is installed.
+local function apply_monitor_overrides()
+  startup.run("monitor overrides", function()
+    dofile(monitor_overrides)
+  end)
+end
+
+hl.on("config.reloaded", apply_monitor_overrides)
+hl.on("hyprland.start", apply_monitor_overrides)
 
 if work_file then
   work_file:close()
