@@ -40,7 +40,9 @@ if not is_work_laptop then
   hl.window_rule({ match = { class = "^([Ff]erdium)$" }, tile = true })
 end
 
-hl.window_rule({ match = { class = "^([Ss]lack|com.slack.Slack)$" }, workspace = "9 silent" })
+if not is_work_laptop then
+  hl.window_rule({ match = { class = "^([Ss]lack|com.slack.Slack)$" }, workspace = "9 silent" })
+end
 
 -- Threat Dragon's Linux desktop/E2E executable uses `threat-dragon`; match the
 -- packaged app ID too so test windows stay off the active workspace.

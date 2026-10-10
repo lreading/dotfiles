@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+trap 'exit 0' INT TERM
 
 last_state=""
 
@@ -27,12 +28,13 @@ while true; do
   fi
 
   if [[ "${state}" != "${last_state}" ]]; then
+    printf 'NETWORK %s\n' "$state"
     case "${state}" in
       ethernet)
-        [[ "$(wifi_radio)" == "disabled" ]] || nmcli radio wifi off >/dev/null 2>&1 || true
+        [[ "$(wifi_radio)" == "disabled" ]] || nmcli radio wifi off >/dev/null 2>&1 || printf 'FAILED to disable wifi\n' >&2
         ;;
       wifi)
-        [[ "$(wifi_radio)" == "enabled" ]] || nmcli radio wifi on >/dev/null 2>&1 || true
+        [[ "$(wifi_radio)" == "enabled" ]] || nmcli radio wifi on >/dev/null 2>&1 || printf 'FAILED to enable wifi\n' >&2
         ;;
     esac
     last_state="${state}"

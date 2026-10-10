@@ -1,49 +1,23 @@
-# Hypr
+# Hyprland user layer
 
-Personal overrides for LinuxBeginnings Hyprland-Dots. See the [root README](../README.md) for the source and setup.
+Install [LinuxBeginnings Hyprland-Dots](https://github.com/LinuxBeginnings/Hyprland-Dots) first. Its scripts and base configuration remain upstream-owned. This Stow package holds settings and helpers that the upstream user layer loads. The optional `work-laptop` package holds hardware-specific settings.
 
-## Folders
+Keep changes in user configuration files. Do not edit or copy upstream scripts into this repo. If upstream offers no user-level hook, keep the smallest required Stow-managed selector and document the exception.
+Leave files that upstream regenerates as live state; do not Stow them.
 
-- `UserConfigs`: personal Lua settings and startup commands.
-- `UserScripts`: personal helper scripts.
-- `UserPrefs`: generated theme files.
-- `scripts`: one local override for a vendor script.
+## Install or refresh
 
-## Update upstream
+From `~/dev/dotfiles`, run `stow -nv hypr waybar`. Check any conflicts before you run `stow -R hypr waybar`. On the work laptop, include `work-laptop` in both commands. Upstream's `copy.sh` may replace live links; re-stow after an upstream update. Do not use `stow --adopt` or `git restore` as an update step: either can hide changes that need review.
 
-Upstream uses `copy.sh` to copy files. It does not keep Stow links. This uses the installed vendor script's stash-and-pull flow.
+Run `Hyprland --verify-config` and then `hyprctl reload config-only`. A new login is needed to test startup commands.
 
-1. Commit this repo. Make sure you know where the upstream repos are stored and update this script, then run:
+## Startup logs
+
+Each user-owned launch writes its start, output, and exit status to the user journal. Waybar uses a user service so its first launch also writes to the journal. Show this boot with:
 
 ```bash
-arch_dir=$HOME/dev/arch-hyprland
-dots_dir=$arch_dir/Hyprland-Dots
-git -C "$dots_dir" stash push -m "before upstream refresh"
-git -C "$arch_dir" pull --ff-only
-git -C "$dots_dir" pull --ff-only
-bash "$arch_dir/install-scripts/update-deps.sh"
-bash "$dots_dir/copy.sh" --express-upgrade
-cd "$HOME/dev/dotfiles"
-stow --adopt hypr waybar swaync kitty
-stow --adopt work-laptop # Only on the work laptop.
-git restore .
-bash ~/.config/hypr/UserScripts/ApplyUserPreferences.sh
-hyprctl reload
-
+journalctl --user -b -t hypr-user-startup
+journalctl --user -b -u waybar.service
 ```
 
-## Debug startup
-
-1. Show this boot's startup log:
-
-   ```bash
-   journalctl --user -b -t hypr-user-startup
-   ```
-
-2. Show the previous boot's startup log:
-
-   ```bash
-   journalctl --user -b -1 -t hypr-user-startup
-   ```
-
-The system journal limits and rotates these logs.
+Use `-b -1` for the previous boot. Upstream startup commands use upstream's own logging; this package does not replace it.
