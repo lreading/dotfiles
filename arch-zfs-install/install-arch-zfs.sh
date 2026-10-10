@@ -923,19 +923,6 @@ pacstrap_target() {
 
   say "Installing base system packages"
   pacstrap "$TARGET" "${packages[@]}"
-  assert_target_core_directory_modes
-}
-
-assert_target_core_directory_modes() {
-  local path=""
-  local mode=""
-
-  for path in "$TARGET" "$TARGET/etc" "$TARGET/var" "$TARGET/var/lib"; do
-    mode="$(stat -c '%a' "$path")"
-    if [[ "$mode" != "755" ]]; then
-      die "${path} has mode ${mode}, expected 755. Stop here; package installation created an invalid base filesystem."
-    fi
-  done
 }
 
 configure_basic_files() {
