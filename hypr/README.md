@@ -13,7 +13,18 @@ Run `Hyprland --verify-config` and then `hyprctl reload config-only`. A new logi
 
 ## Startup logs
 
-Each user-owned launch writes its start, output, and exit status to the user journal. Waybar uses a user service so its first launch also writes to the journal. Show this boot with:
+Each user-owned launch writes its start, output, and exit status to the user journal. Waybar uses a user service, started by upstream's `WaybarStartup.sh` after `WallpaperDaemon.sh` finishes generating colors. Enable it with its `hyprland-waybar.service` alias so the upstream helper recognizes systemd ownership. Do not attach it to `graphical-session.target`: that starts the bar before the colors are ready and causes an immediate reload at login.
+
+When upgrading from the previously enabled unit, remove its automatic start and reload the unit definitions (the running bar stays up):
+
+```bash
+systemctl --user disable waybar.service
+stow waybar
+systemctl --user daemon-reload
+systemctl --user enable waybar.service
+```
+
+Show startup logs for this boot with:
 
 ```bash
 journalctl --user -b -t hypr-user-startup
