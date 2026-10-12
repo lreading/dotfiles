@@ -22,10 +22,8 @@ vim.opt.rtp:prepend(lazypath)
 vim.opt.termguicolors = true
 
 require("lazy").setup("plugins", {
-	opts = {
-		rocks = {
-			enabled = false,
-		},
+	rocks = {
+		enabled = false,
 	},
 })
 
