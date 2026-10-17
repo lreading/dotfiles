@@ -23,13 +23,7 @@ if work_file then
 else
   hl.on("hyprland.start", function()
     startup.launch("ferdium", "ferdium --force-device-scale-factor=1.2")
-    startup.launch("keyring", "gnome-keyring-daemon --start --components=secrets")
     startup.launch("kitty-tmux", "kitty --class hypr-startup-kitty --name hypr-startup-tmux -T hypr-startup-tmux -e tmux new-session -n TODO 'nvim TODO.md' \\; new-window \\; select-window -t :TODO")
     startup.launch("vivaldi", "vivaldi")
-
-    local portmaster = os.execute("command -v portmaster >/dev/null 2>&1")
-    if portmaster == true or portmaster == 0 then
-      startup.launch("portmaster", "portmaster --with-prompts --with-notifications")
-    end
   end)
 end
