@@ -4,19 +4,21 @@ set -euo pipefail
 
 script_path="$(readlink -f -- "${BASH_SOURCE[0]}")"
 repo_root="$(cd -- "$(dirname -- "$script_path")/../../.." && pwd -P)"
-source_dir="$repo_root/overlays/waybar"
+overlay_dir="$repo_root/overlays"
 config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
+hypr_dir="$config_home/hypr"
 waybar_dir="$config_home/hypr/waybar"
 
-if [[ ! -d "$waybar_dir" ]]; then
+if [[ ! -d "$hypr_dir" || ! -d "$waybar_dir" ]]; then
   echo "Waybar is not installed at $waybar_dir." >&2
   echo "Run the upstream copy.sh upgrade first." >&2
   exit 1
 fi
 
-install -Dm644 "$source_dir/UserModules" "$waybar_dir/UserModules"
-install -Dm644 "$source_dir/configs/Leo-Top-Laptop" "$waybar_dir/configs/Leo-Top-Laptop"
-install -Dm644 "$source_dir/style/Leo-Latte-Wallust.css" "$waybar_dir/style/Leo-Latte-Wallust.css"
+install -Dm644 "$overlay_dir/hypr/hypridle.conf" "$hypr_dir/hypridle.conf"
+install -Dm644 "$overlay_dir/waybar/UserModules" "$waybar_dir/UserModules"
+install -Dm644 "$overlay_dir/waybar/configs/Leo-Top-Laptop" "$waybar_dir/configs/Leo-Top-Laptop"
+install -Dm644 "$overlay_dir/waybar/style/Leo-Latte-Wallust.css" "$waybar_dir/style/Leo-Latte-Wallust.css"
 
 set_selection() {
   local target="$1"
@@ -33,4 +35,4 @@ set_selection() {
 set_selection "configs/Leo-Top-Laptop" "$waybar_dir/config"
 set_selection "style/Leo-Latte-Wallust.css" "$waybar_dir/style.css"
 
-echo "Applied personal Waybar modules, layout, and style."
+echo "Applied personal Hypridle and Waybar overrides."

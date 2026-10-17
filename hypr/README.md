@@ -6,11 +6,12 @@ Keep changes in user configuration files. Do not edit or copy upstream scripts
 into this repo. Leave files that upstream regenerates as live state. Do not
 Stow them.
 
-Waybar is upstream-owned at `~/.config/hypr/waybar`. The personal Waybar
-source files are in `../overlays/waybar`. Run `hypr-waybar-apply` after an
-upstream upgrade. The command installs the user-owned `UserModules`, a named
-layout, and a named style. It then selects those files without replacing an
-unexpected regular file.
+Waybar is upstream-owned at `~/.config/hypr/waybar`. Top-level
+`hypridle.conf` is also rewritten by upstream patches. The personal source
+files are in `../overlays`. Run `hypr-overlays-apply` after an upstream
+upgrade. The command installs the user-owned `UserModules`, a named layout, a
+named style, and the Hypridle override. It then selects the Waybar files
+without replacing an unexpected regular file.
 
 ## Install or refresh
 
