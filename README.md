@@ -15,8 +15,9 @@ The related configs in this repo are user-owned configs, not a complete fork or 
 ## Packages
 
 - `hypr`: user settings and helpers for Hyprland-Dots.
-- `overlays`: source files for generated upstream settings. This is not a Stow
-  package. Use `hypr-overlays-apply` after an upstream update.
+- `overlays`: source files for generated upstream settings and personal palette
+  overrides. This is not a Stow package. Use `hypr-overlays-apply` after an
+  upstream update.
 - `swaync`: notification config and style.
 - `kitty`, `nvim`, `tmux`: app-specific config.
 - `local-bin`: user scripts in `~/.local/bin`, including git worktree helpers.

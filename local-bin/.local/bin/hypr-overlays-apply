@@ -35,4 +35,18 @@ set_selection() {
 set_selection "configs/Leo-Top-Laptop" "$waybar_dir/config"
 set_selection "style/Leo-Latte-Wallust.css" "$waybar_dir/style.css"
 
-echo "Applied personal Hypridle and Waybar overrides."
+hyprlock_palette="$hypr_dir/UserConfigs/leo-blue-gray-hyprlock.conf"
+if [[ ! -f "$hyprlock_palette" ]]; then
+  echo "Missing Hyprlock palette: $hyprlock_palette" >&2
+  echo "Run stow -R hypr before applying overlays." >&2
+  exit 1
+fi
+
+for hyprlock_config in "$hypr_dir/hyprlock.conf" "$hypr_dir/hyprlock-1080p.conf" "$hypr_dir/hyprlock-2k.conf"; do
+  [[ -f "$hyprlock_config" ]] || continue
+  sed -i \
+    's|^source = \$HOME/\.config/hypr/wallust/wallust-hyprland\.conf$|source = $HOME/.config/hypr/UserConfigs/leo-blue-gray-hyprlock.conf|' \
+    "$hyprlock_config"
+done
+
+echo "Applied personal Hypridle, Hyprlock, and Waybar overrides."

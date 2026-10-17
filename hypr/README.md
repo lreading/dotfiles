@@ -10,8 +10,9 @@ Waybar is upstream-owned at `~/.config/hypr/waybar`. Top-level
 `hypridle.conf` is also rewritten by upstream patches. The personal source
 files are in `../overlays`. Run `hypr-overlays-apply` after an upstream
 upgrade. The command installs the user-owned `UserModules`, a named layout, a
-named style, and the Hypridle override. It then selects the Waybar files
-without replacing an unexpected regular file.
+named style, the Hypridle override, and a static blue-gray Hyprlock palette.
+It selects the Waybar files without replacing an unexpected regular file. It
+changes only the known dynamic Hyprlock palette source in live layouts.
 
 ## Install or refresh
 
