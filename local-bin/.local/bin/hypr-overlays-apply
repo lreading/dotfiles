@@ -49,4 +49,25 @@ for hyprlock_config in "$hypr_dir/hyprlock.conf" "$hypr_dir/hyprlock-1080p.conf"
     "$hyprlock_config"
 done
 
-echo "Applied personal Hypridle, Hyprlock, and Waybar overrides."
+rainbow_mode_file="$hypr_dir/UserScripts/rainbow-borders.mode"
+rainbow_script="$hypr_dir/UserScripts/RainbowBorders.sh"
+if [[ -f "$rainbow_mode_file" ]]; then
+  rainbow_mode="$(tr -d '[:space:]' <"$rainbow_mode_file")"
+  case "$rainbow_mode" in
+  wallust_random | rainbow | gradient_flow)
+    if [[ ! -f "$rainbow_script" ]]; then
+      for disabled_script in "${rainbow_script}.bak" "$hypr_dir/UserScripts/RainbowBorders.bak.sh"; do
+        if [[ -f "$disabled_script" ]]; then
+          mv -- "$disabled_script" "$rainbow_script"
+          break
+        fi
+      done
+    fi
+    if [[ -f "$rainbow_script" ]]; then
+      sed -i "s/^EFFECT_TYPE=.*/EFFECT_TYPE=\"$rainbow_mode\"/" "$rainbow_script"
+    fi
+    ;;
+  esac
+fi
+
+echo "Applied personal Hypridle, Hyprlock, Waybar, and Rainbow Borders overrides."

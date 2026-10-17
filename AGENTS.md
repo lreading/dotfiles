@@ -13,6 +13,10 @@ locally installed LinuxBeginnings Hyprland-Dots repository.
   After an upstream update, re-Stow and run `hypr-overlays-apply`.
 - Waybar uses the user-owned static blue-gray palette. Do not restore its
   Wallust color import unless the user asks for wallpaper-driven colors.
+- UWSM starts Kitty with `UserConfigs/kitty.conf`. Keep its static theme there,
+  not only in `~/.config/kitty/kitty.conf`.
+- Rainbow Borders mode is user state in `UserScripts/rainbow-borders.mode`.
+  `hypr-overlays-apply` restores its selected upstream user script.
 - Verify Hyprland with `Hyprland --verify-config`. Use
   `hyprctl reload config-only`; do not use a broad reload for monitor changes.
 - SDDM source is Stow-managed. Deploy it only with `deploy-sddm-theme`, which
