@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+script_path="$(readlink -f -- "${BASH_SOURCE[0]}")"
+repo_root="$(cd -- "$(dirname -- "$script_path")/../../.." && pwd -P)"
+source_dir="$repo_root/overlays/waybar"
+config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
+waybar_dir="$config_home/hypr/waybar"
+
+if [[ ! -d "$waybar_dir" ]]; then
+  echo "Waybar is not installed at $waybar_dir." >&2
+  echo "Run the upstream copy.sh upgrade first." >&2
+  exit 1
+fi
+
+install -Dm644 "$source_dir/UserModules" "$waybar_dir/UserModules"
+install -Dm644 "$source_dir/configs/Leo-Top-Laptop" "$waybar_dir/configs/Leo-Top-Laptop"
+install -Dm644 "$source_dir/style/Leo-Latte-Wallust.css" "$waybar_dir/style/Leo-Latte-Wallust.css"
+
+set_selection() {
+  local target="$1"
+  local destination="$2"
+
+  if [[ -e "$destination" && ! -L "$destination" ]]; then
+    echo "Refusing to replace regular file: $destination" >&2
+    exit 1
+  fi
+
+  ln -sfn "$target" "$destination"
+}
+
+set_selection "configs/Leo-Top-Laptop" "$waybar_dir/config"
+set_selection "style/Leo-Latte-Wallust.css" "$waybar_dir/style.css"
+
+echo "Applied personal Waybar modules, layout, and style."

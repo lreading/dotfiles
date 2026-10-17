@@ -15,10 +15,9 @@ The related configs in this repo are user-owned configs, not a complete fork or 
 ## Packages
 
 - `hypr`: user settings and helpers for Hyprland-Dots.
-- `waybar`: user Waybar override files and selected style/config files:
-  - `~/.config/waybar/UserModules`
-  - `~/.config/waybar/configs/[TOP] Default Laptop`
-  - `~/.config/waybar/style/[Dark] Latte-Wallust combined.css`
+- `overlays/waybar`: source files for the personal Waybar modules, layout, and
+  style. This is not a Stow package. Use `hypr-waybar-apply` after an upstream
+  update has migrated Waybar to `~/.config/hypr/waybar`.
 - `swaync`: notification config and style.
 - `kitty`, `nvim`, `tmux`: app-specific config.
 - `local-bin`: user scripts in `~/.local/bin`, including git worktree helpers.
@@ -42,8 +41,8 @@ Run the upstream installers according to those repos. After the upstream config 
 
 ```bash
 cd ~/dev/dotfiles
-stow -nv hypr waybar swaync kitty nvim tmux local-bin sddm shell
-stow hypr waybar swaync kitty nvim tmux local-bin sddm shell
+stow -nv hypr swaync kitty nvim tmux local-bin sddm shell
+stow hypr swaync kitty nvim tmux local-bin sddm shell
 stow -nv work-laptop && stow work-laptop # Only on the work laptop.
 ```
 

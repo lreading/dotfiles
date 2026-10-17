@@ -2,27 +2,31 @@
 
 Install [LinuxBeginnings Hyprland-Dots](https://github.com/LinuxBeginnings/Hyprland-Dots) first. Its scripts and base configuration remain upstream-owned. This Stow package holds settings and helpers that the upstream user layer loads. The optional `work-laptop` package holds hardware-specific settings.
 
-Keep changes in user configuration files. Do not edit or copy upstream scripts into this repo. If upstream offers no user-level hook, keep the smallest required Stow-managed selector and document the exception.
-Leave files that upstream regenerates as live state; do not Stow them.
+Keep changes in user configuration files. Do not edit or copy upstream scripts
+into this repo. Leave files that upstream regenerates as live state. Do not
+Stow them.
+
+Waybar is upstream-owned at `~/.config/hypr/waybar`. The personal Waybar
+source files are in `../overlays/waybar`. Run `hypr-waybar-apply` after an
+upstream upgrade. The command installs the user-owned `UserModules`, a named
+layout, and a named style. It then selects those files without replacing an
+unexpected regular file.
 
 ## Install or refresh
 
-From `~/dev/dotfiles`, run `stow -nv hypr waybar`. Check any conflicts before you run `stow -R hypr waybar`. On the work laptop, include `work-laptop` in both commands. Upstream's `copy.sh` may replace live links; re-stow after an upstream update. Do not use `stow --adopt` or `git restore` as an update step: either can hide changes that need review.
+From `~/dev/dotfiles`, run `stow -nv hypr`. Check any conflicts before you run
+`stow -R hypr`. On the work laptop, include `work-laptop` in both commands.
+Upstream's `copy.sh` may replace live links. Re-stow after an upstream update.
+Do not use `stow --adopt` or `git restore` as an update step. Either can hide
+changes that need review.
 
 Run `Hyprland --verify-config` and then `hyprctl reload config-only`. A new login is needed to test startup commands.
 
 ## Startup logs
 
-Each user-owned launch writes its start, output, and exit status to the user journal. Waybar uses a user service, started by upstream's `WaybarStartup.sh` after `WallpaperDaemon.sh` finishes generating colors. Enable it with its `hyprland-waybar.service` alias so the upstream helper recognizes systemd ownership. Do not attach it to `graphical-session.target`: that starts the bar before the colors are ready and causes an immediate reload at login.
-
-When upgrading from the previously enabled unit, remove its automatic start and reload the unit definitions (the running bar stays up):
-
-```bash
-systemctl --user disable waybar.service
-stow waybar
-systemctl --user daemon-reload
-systemctl --user enable waybar.service
-```
+Each user-owned launch writes its start, output, and exit status to the user
+journal. Upstream starts Waybar after `WallpaperDaemon.sh` generates colors.
+This repository does not provide a Waybar systemd unit.
 
 Show startup logs for this boot with:
 
