@@ -40,6 +40,21 @@
 @define-color color15 #9DBDDF;
 @import "style/catppuccin-themes/latte.css";
 
+/* The imported Latte palette adds a light tile behind every tray item.
+ * Keep the tray icons unframed while leaving the rest of that palette intact. */
+#tray > *,
+#tray > .passive,
+#tray > .active,
+#tray > .needs-attention {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    margin-left: 0;
+    margin-right: 0;
+    padding-left: 0;
+    padding-right: 0;
+}
+
 * {
     font-family: "JetBrainsMono Nerd Font";
     font-weight: bold;
