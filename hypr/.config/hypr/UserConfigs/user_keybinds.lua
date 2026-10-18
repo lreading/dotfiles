@@ -13,7 +13,12 @@ local function rebind(mods, key, dispatcher, opts)
   bind(mods, key, dispatcher, opts)
 end
 
-rebind("SUPER", "D", exec_cmd("pkill rofi || true && rofi -show drun -modi drun,filebrowser,run,window"), { description = "Application launcher" })
+-- Keep the launcher choice and theme in the Stow-managed user layer. The
+-- upstream Rofi config is regenerated during updates, so invoking Rofi with
+-- no config can silently fall back to its unthemed defaults.
+rebind("SUPER", "D", exec_cmd("pkill rofi || true && rofi -show drun -modi drun,filebrowser,run,window -config $HOME/.config/hypr/UserConfigs/rofi.rasi"), {
+  description = "Application launcher (Rofi)",
+})
 rebind("SUPER", "B", exec_cmd("xdg-open \"https://\""), { description = "Open default browser" })
 rebind("SUPER", "E", exec_cmd("thunar"), { description = "Open file manager" })
 

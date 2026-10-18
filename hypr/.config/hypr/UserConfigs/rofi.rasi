@@ -1,0 +1,10 @@
+/* Personal Rofi launcher configuration.
+ *
+ * This file is Stow-managed. It deliberately imports the vendor-managed
+ * shared settings and color source, but pins the selected launcher theme so
+ * upstream updates cannot replace the user's choice.
+ */
+@import "~/.config/hypr/rofi/0-shared-fonts.rasi"
+@import "~/.config/hypr/rofi/00-terminal.rasi"
+
+@theme "~/.config/hypr/rofi/themes/KooL_style-4.rasi"

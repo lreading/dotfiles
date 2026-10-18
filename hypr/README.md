@@ -14,6 +14,11 @@ named style, the Hypridle override, and a static blue-gray Hyprlock palette.
 It selects the Waybar files without replacing an unexpected regular file. It
 changes only the known dynamic Hyprlock palette source in live layouts.
 
+`SUPER+D` is a user-owned Rofi launcher binding. Its theme selection lives in
+`UserConfigs/rofi.rasi`, which pins `KooL_style-4` while continuing to import
+the upstream Rofi shared settings and generated colors. This keeps the chosen
+theme after upstream updates without copying vendor theme files.
+
 ## Install or refresh
 
 From `~/dev/dotfiles`, run `stow -nv hypr`. Check any conflicts before you run
