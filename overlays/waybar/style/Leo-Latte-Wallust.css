@@ -12,7 +12,7 @@
 @define-color teal-trans	rgba(1, 117, 84, 0.5);
 @define-color cyan			rgba(53, 140, 169, 1);
 
-@define-color background-module     @transparent;
+@define-color background-module     transparent;
 @define-color border-color          @color12;
 @define-color button-color          @color11;
 @define-color button-hover          @color13;
