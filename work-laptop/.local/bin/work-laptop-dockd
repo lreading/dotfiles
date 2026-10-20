@@ -58,7 +58,7 @@ while true; do
 
   if [[ -n "$last_dp" && "$dp" != "$last_dp" ]]; then
     printf 'DISPLAY %s; restarting Waybar\n' "$dp"
-    systemctl --user restart waybar.service || printf 'FAILED to restart Waybar\n' >&2
+    "${XDG_CONFIG_HOME:-$HOME/.config}/hypr/scripts/WaybarStartup.sh" --restart || printf 'FAILED to restart Waybar\n' >&2
   fi
   last_dp="$dp"
 
@@ -72,6 +72,8 @@ while true; do
 
   if [[ "$state" != "$last_state" ]]; then
     printf 'PROFILE %s\n' "$state"
+    hyprctl eval 'dofile((os.getenv("XDG_CONFIG_HOME") or (os.getenv("HOME") .. "/.config")) .. "/hypr/UserConfigs/monitors.lua")' \
+      || printf 'FAILED to apply monitor profile\n' >&2
     if [[ "$state" == docked ]]; then
       set_lid_inhibitor enabled
     else

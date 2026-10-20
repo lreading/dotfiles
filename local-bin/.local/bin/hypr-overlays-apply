@@ -32,7 +32,11 @@ set_selection() {
   ln -sfn "$target" "$destination"
 }
 
-set_selection "configs/Leo-Top-Laptop" "$waybar_dir/config"
+if [[ -f "$hypr_dir/work_laptop.lua" && -f "$hypr_dir/UserConfigs/waybar-workspaces.jsonc" ]]; then
+  set_selection "../UserConfigs/waybar-workspaces.jsonc" "$waybar_dir/config"
+else
+  set_selection "configs/Leo-Top-Laptop" "$waybar_dir/config"
+fi
 set_selection "style/Leo-Latte-Wallust.css" "$waybar_dir/style.css"
 
 hyprlock_palette="$hypr_dir/UserConfigs/leo-blue-gray-hyprlock.conf"

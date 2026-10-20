@@ -12,13 +12,13 @@
 @define-color teal-trans	rgba(1, 117, 84, 0.5);
 @define-color cyan			rgba(53, 140, 169, 1);
 
-@define-color background-module     transparent;
-@define-color border-color          @color12;
+@define-color background-module     rgba(16, 18, 21, 0.9);
+@define-color border-color          @color13;
 @define-color button-color          @color11;
 @define-color button-hover          @color13;
 
 /* Keep the panel palette independent of the wallpaper chosen by Wallust. */
-@define-color foreground #2E5782;
+@define-color foreground #9DBDDF;
 @define-color background #101215;
 @define-color background-alt rgba(16,18,21,0.25);
 @define-color cursor #657B94;
@@ -53,6 +53,11 @@
     margin-right: 0;
     padding-left: 0;
     padding-right: 0;
+    color: @foreground;
+}
+
+#tray image {
+    color: @foreground;
 }
 
 * {
@@ -102,13 +107,13 @@ tooltip {
     border:2px solid @border-color;
     font-weight: bold;
     font-style: normal;
-    opacity: 0.8;
+    opacity: 1;
     color: @foreground;
 }
 
 #taskbar button,   
 #workspaces button {
-    color: #6E6A86;
+    color: @color8;
     box-shadow: none;
 	text-shadow: none;
     border-radius: 30px;

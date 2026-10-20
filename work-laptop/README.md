@@ -34,6 +34,9 @@ sudo install -Dm755 work-laptop/system/usr/local/sbin/work-laptop-reset-astro-us
 
 The shared Hyprland startup config loads `work_laptop.lua` when this package is
 installed. Its helper scripts start automatically on the next Hyprland login.
+After stowing this package, run `hypr-overlays-apply` to select its Waybar
+workspace wrapper. It shows workspaces 1-10 and includes the shared layout;
+other laptops keep the shared workspace count and module-loading order.
 The work-only startup helper detects the ASUS external display by its monitor
 description and selects one of two application layouts:
 
