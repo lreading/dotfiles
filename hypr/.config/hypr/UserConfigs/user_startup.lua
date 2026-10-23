@@ -22,8 +22,7 @@ if work_file then
   startup.include(work_laptop)
 else
   hl.on("hyprland.start", function()
-    startup.launch("ferdium", "ferdium --force-device-scale-factor=1.2")
     startup.launch("kitty-tmux", "kitty --class hypr-startup-kitty --name hypr-startup-tmux -T hypr-startup-tmux -e tmux new-session -n TODO 'nvim TODO.md' \\; new-window \\; select-window -t :TODO")
-    startup.launch("vivaldi", "vivaldi")
+    startup.launch("zen", "zen-browser")
   end)
 end

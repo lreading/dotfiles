@@ -10,7 +10,7 @@ if work_laptop_file then work_laptop_file:close() end
 
 if not is_work_laptop then
   hl.window_rule({
-    match = { class = "^([Vv]ivaldi(-stable)?)$" },
+    match = { class = "^zen$" },
     workspace = "2 silent",
     no_initial_focus = true,
   })
@@ -28,16 +28,10 @@ if not is_work_laptop then
   })
   hl.window_rule({
     match = { class = "^portmaster$" },
-    workspace = "8 silent",
+    workspace = "10 silent",
     no_initial_focus = true,
   })
   hl.window_rule({ match = { class = "^([Dd]iscord|[Vv]esktop)$" }, workspace = 10 })
-  hl.window_rule({ match = { class = "^([Ff]erdium)$" }, workspace = "10 silent" })
-  -- Legacy `fullscreen 2` maps to the current internal/client fullscreen state.
-  -- Keep the client in fullscreen while Hyprland uses maximized mode, preserving
-  -- the Waybar-reserved area (the original user setting was `1 2`).
-  hl.window_rule({ match = { class = "^([Ff]erdium)$" }, fullscreen_state = "1 2" })
-  hl.window_rule({ match = { class = "^([Ff]erdium)$" }, tile = true })
 end
 
 if not is_work_laptop then
