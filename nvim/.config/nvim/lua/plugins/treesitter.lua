@@ -7,8 +7,10 @@ return {
 		},
 		build = ":TSUpdate",
 		config = function()
-			local parsers = { "lua", "javascript", "vue", "rust", "markdown", "markdown_inline" }
-			local filetypes = { "lua", "javascript", "vue", "rust", "markdown" }
+			local parsers = { "lua", "javascript", "vue", "rust", "markdown", "markdown_inline", "hcl", "terraform" }
+			local filetypes = { "lua", "javascript", "vue", "rust", "markdown", "hcl", "terraform", "terraform-vars" }
+
+			vim.treesitter.language.register("terraform", "terraform-vars")
 
 			local function first_capture(match, capture_id)
 				local nodes = match[capture_id]

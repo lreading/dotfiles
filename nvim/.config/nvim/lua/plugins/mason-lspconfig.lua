@@ -23,6 +23,7 @@ return {
 					"jsonls",
 					"yamlls",
 					"dockerls",
+					"tofu_ls",
 					"rust_analyzer",
 					"vue_ls",
 				},
