@@ -23,6 +23,9 @@ if work_file then
 else
   hl.on("hyprland.start", function()
     startup.launch("kitty-tmux", "kitty --class hypr-startup-kitty --name hypr-startup-tmux -T hypr-startup-tmux -e tmux new-session -n TODO 'nvim TODO.md' \\; new-window \\; select-window -t :TODO")
-    startup.launch("zen", "zen-browser")
+    startup.run("zen", function()
+      -- Launch directly so placement tracks Zen's PID, not the logging wrapper.
+      hl.exec_cmd("exec zen-browser", { workspace = "2 silent", no_initial_focus = true })
+    end)
   end)
 end

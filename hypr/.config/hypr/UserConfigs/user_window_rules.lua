@@ -10,11 +10,6 @@ if work_laptop_file then work_laptop_file:close() end
 
 if not is_work_laptop then
   hl.window_rule({
-    match = { class = "^zen$" },
-    workspace = "2 silent",
-    no_initial_focus = true,
-  })
-  hl.window_rule({
     match = { class = "^hypr-startup-kitty$" },
     workspace = "1 silent",
     no_initial_focus = true,
