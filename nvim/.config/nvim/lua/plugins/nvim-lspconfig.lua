@@ -9,6 +9,7 @@ return {
 			vim.filetype.add({
 				extension = {
 					gotmpl = "gotmpl",
+					tf = "terraform",
 					tofu = "terraform",
 				},
 				filename = {
