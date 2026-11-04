@@ -12,3 +12,8 @@ hl.config({
     no_hardware_cursors = 2,
   },
 })
+
+-- Disable the three-finger gestures registered by the base configuration.
+for _, direction in ipairs({ "horizontal", "up", "down" }) do
+  hl.gesture({ fingers = 3, direction = direction, action = "unset" })
+end
