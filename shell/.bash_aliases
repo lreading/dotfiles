@@ -4,7 +4,7 @@ export VISUAL=nvim
 export EDITOR="$VISUAL"
 
 mkcd() {
-  mkdir -p "$1" && cd "$1"
+  mkdir -p "$1" && cd "$1" || exit
 }
 
 alias x="clear"
@@ -16,6 +16,10 @@ alias utcdate="date -u +%FT%T.%3NZ"
 alias utc-date="utcdate"
 alias isodate="utcdate"
 alias iso-date="utcdate"
+
+# Kitty / Remote Editing
+alias kssh="kitty ssh" # kssh <ssh-config-entry-or-host>
+alias rnvim="edit-in-kitty"
 
 # Bash Completion for the kubectl alias
 complete -o default -F __start_kubectl kc
@@ -159,3 +163,5 @@ if [[ -d "$alias_dir" ]]; then
   done
 fi
 unset alias_file alias_dir
+
+
