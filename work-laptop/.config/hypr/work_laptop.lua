@@ -1,6 +1,7 @@
 local config_home = os.getenv("XDG_CONFIG_HOME") or (os.getenv("HOME") .. "/.config")
 local startup = dofile(config_home .. "/hypr/UserConfigs/startup_log.lua")
 startup.include(config_home .. "/hypr/lua/work_window_rules.lua")
+startup.include(config_home .. "/hypr/UserConfigs/work_keychron.lua")
 local session_ok, session = pcall(dofile, config_home .. "/hypr/lua/work_session.lua")
 if not session_ok then startup.note("FAILED to load work session: " .. tostring(session)) end
 

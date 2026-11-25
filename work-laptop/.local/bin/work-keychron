@@ -1,0 +1,100 @@
+#!/usr/bin/env python3
+"""Work laptop Q11 VIA controls. No third-party Python dependencies."""
+import argparse
+import fcntl
+import os
+from pathlib import Path
+import select
+import sys
+
+VID_PID = "HID_ID=0003:00003434:000001E0"
+# Snapshot from this Q11: VIA brightness 16/255, solid, #01ff19.
+HOME_BRIGHTNESS, HOME_HUE, HOME_SATURATION = 16, 89, 254
+# Widely spaced colors are easier to distinguish at low LED brightness.
+COLOR_HUES = (0, 43, 85, 128, 171, 213)
+
+
+class Keyboard:
+    def __init__(self, path):
+        self.fd = os.open(path, os.O_RDWR | os.O_NONBLOCK)
+
+    def query(self, *data):
+        os.write(self.fd, bytes([0, *data]) + bytes(32 - len(data)))
+        if not select.select([self.fd], [], [], 1)[0]:
+            raise RuntimeError("Q11 VIA response timed out")
+        reply = os.read(self.fd, 32)
+        if reply[:1] != bytes(data[:1]):
+            raise RuntimeError("Q11 rejected VIA command")
+        return reply
+
+    def get(self, setting):
+        return self.query(8, 3, setting)[3:5]
+
+    def set(self, setting, *values):
+        self.query(7, 3, setting, *values)
+
+
+def find_keyboard():
+    for node in Path("/sys/class/hidraw").glob("hidraw*"):
+        device = node / "device"
+        if VID_PID in (device / "uevent").read_text():
+            # VIA raw HID usage page FF60, usage 61; exclude keyboard interfaces.
+            if (device / "report_descriptor").read_bytes().startswith(bytes.fromhex("0660ff0961")):
+                return "/dev/" + node.name
+    return None
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("action", choices=["restore", "brightness", "effect", "color", "status", "setup"])
+    parser.add_argument("--reverse", action="store_true")
+    args = parser.parse_args()
+    path = find_keyboard()
+    if path is None:
+        return  # Q11 absent: leave all other keyboards alone.
+    with open(Path(os.environ["XDG_RUNTIME_DIR"]) / "work-keychron.lock", "w") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        kb = Keyboard(path)
+        try:
+            step = -1 if args.reverse else 1
+            if args.action == "restore":
+                kb.set(1, HOME_BRIGHTNESS + 1)
+                kb.set(4, HOME_HUE, HOME_SATURATION)
+                kb.set(2, 1)
+            elif args.action == "brightness":
+                # About 5% steps. This firmware reads back one below the
+                # requested nonzero brightness (maximum readback is 254).
+                levels = list(range(0, 254, 13)) + [254]
+                current = kb.get(1)[0]
+                if step > 0:
+                    value = next((v for v in levels if v > current), 0)
+                else:
+                    value = next((v for v in reversed(levels) if v < current), 254)
+                kb.set(1, value + 1 if value else 0)
+            elif args.action == "effect":
+                kb.set(2, (kb.get(2)[0] + step) % 23)
+            elif args.action == "color":
+                hue, saturation = kb.get(4)
+                if step > 0:
+                    hue = next((h for h in COLOR_HUES if h > hue), COLOR_HUES[0])
+                else:
+                    hue = next((h for h in reversed(COLOR_HUES) if h < hue), COLOR_HUES[-1])
+                kb.set(4, hue, saturation)
+            elif args.action == "setup":
+                # Only the five dedicated macro positions on both base layers.
+                # Fn layers stay transparent, so Ctrl+M2/M3/M4 work too.
+                for layer in (0, 2):
+                    for row in range(1, 6):
+                        kb.query(5, layer, row, 0, 0, 0x68 + row - 1)
+            else:
+                print("brightness={}, effect={}, hue={}, saturation={}".format(
+                    kb.get(1)[0], kb.get(2)[0], *kb.get(4)))
+        finally:
+            os.close(kb.fd)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (OSError, RuntimeError) as error:
+        sys.exit("work-keychron: " + str(error))

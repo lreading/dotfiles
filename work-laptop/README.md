@@ -76,3 +76,32 @@ If the Astro MixAmp is missing after using the hub power button, run:
 ```bash
 work-laptop-reset-astro
 ```
+
+## Keychron Q11 macro keys
+
+The work package maps the Q11's dedicated M1–M5 keys to F13–F17 and binds
+their Linux XKB symbols: XF86Tools and XF86Launch5 through XF86Launch8:
+
+- M1 restores the captured lighting: brightness 16/255, solid color, #01ff19
+- M2 cycles brightness upward in roughly 5% steps, wrapping from maximum to off
+- M3 cycles all 23 VIA effects, including off, and wraps to the first
+- M4 cycles red, yellow, green, cyan, blue, and magenta, preserving
+  saturation and brightness
+- M5 runs the existing user LockScreen.sh helper
+- Ctrl+M2, Ctrl+M3, and Ctrl+M4 cycle backward
+
+`work-keychron` uses Python's standard library and the existing VIA hidraw
+access. It matches only USB 3434:01e0 and the VIA interface; when the Q11 is
+absent it exits quietly. No background service or additional USB permission
+rule is needed. RGB changes are live, without writing EEPROM on every press.
+M1 restores the saved preference whenever needed.
+
+The dedicated macro keys were mapped on both Mac and Windows base layers.
+The Fn layers remain transparent. These mappings live in keyboard memory and
+travel with it. To apply them again after a firmware reset, run
+`work-keychron setup`. Their previous keycodes were 0x7703 through 0x7707
+(VIA macro slots 3 through 7); other keys and stored macro contents are intact.
+The laptop's built-in keyboard bindings and shared configs are unchanged.
+
+The firmware reports nonzero brightness one below the value written. The
+helper compensates for this; the effective maximum reported value is 254.
