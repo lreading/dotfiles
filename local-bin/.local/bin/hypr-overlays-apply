@@ -74,4 +74,18 @@ if [[ -f "$rainbow_mode_file" ]]; then
   esac
 fi
 
+# Repair the Lua-mode fallback detection in the rainbow scripts. Hyprland 0.57
+# returns "unknown request" from `hyprctl keyword` under the Lua config, which
+# the upstream scripts do not treat as a failure, so they never reach their
+# hl.config (hyprctl eval) fallback. Idempotent: skip a file that already
+# handles it.
+for rb_script in \
+  "$hypr_dir/UserScripts/RainbowBorders.sh" \
+  "$hypr_dir/UserScripts/RainbowBorders-low-cpu.sh"; do
+  [[ -f "$rb_script" ]] || continue
+  if ! grep -q 'unknown request' "$rb_script"; then
+    sed -i 's/"\$out" != \*"invalid"\*/"$out" != *"invalid"* \&\& "$out" != *"unknown request"*/' "$rb_script"
+  fi
+done
+
 echo "Applied personal Hypridle, Hyprlock, Waybar, and Rainbow Borders overrides."
