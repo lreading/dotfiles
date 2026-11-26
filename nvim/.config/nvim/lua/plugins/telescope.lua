@@ -18,7 +18,7 @@ return {
 				else
 					-- Use `fd` if available, otherwise fallback to `find`
 					if vim.fn.executable("fd") == 1 then
-						return { "fd", "--type", "f", "--hidden", "--exclude", ".git" }
+						return { "fd", "--type", "f", "--follow", "--hidden", "--exclude", ".git" }
 					else
 						return { "find", ".", "-type", "f", "-not", "-path", "*/.git/*" }
 					end
@@ -47,6 +47,7 @@ return {
 							"--line-number",
 							"--column",
 							"--smart-case",
+              "--follow",
 							"--hidden",
 							"--no-ignore",
 							"--glob",

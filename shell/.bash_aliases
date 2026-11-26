@@ -18,8 +18,23 @@ alias isodate="utcdate"
 alias iso-date="utcdate"
 
 # Kitty / Remote Editing
-alias kssh="kitty ssh" # kssh <ssh-config-entry-or-host>
+# TODO: Decide if alias or function works better
+# function hard-codes the evals, which is a better JIT approach?
+# Counterpoint - also wasteful, not necessary for each kssh
+# alias kssh="kitty ssh"
+#alias kssh='eval "$(tmux show-environment -s KITTY_PID)" && eval "$(tmux show-environment -s KITTY_WINDOW_ID)" && kitten ssh'
+alias kssh="kitten ssh"
+
 alias rnvim="edit-in-kitty"
+
+# TODO: This doesn't work, and idk why
+# kssh() {
+#     if [[ -n "${TMUX:-}" ]]; then
+#         eval "$(tmux show-environment -s KITTY_PID)"
+#         eval "$(tmux show-environment -s KITTY_WINDOW_ID)"
+#     fi
+#     command kitten ssh "$@"
+# }
 
 # Bash Completion for the kubectl alias
 complete -o default -F __start_kubectl kc
