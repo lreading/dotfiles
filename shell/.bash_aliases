@@ -160,4 +160,22 @@ if [[ -d "$alias_dir" ]]; then
 fi
 unset alias_file alias_dir
 
+# Ring Kitty's visual bell after a failed interactive Bash command.
+# Starship preserves earlier prompt hooks and exposes the original exit status.
+if [[ $- == *i* && -n ${KITTY_WINDOW_ID-} ]]; then
+  _kitty_bell_on_failure() {
+    local status=$?
+    if [[ ${PROMPT_COMMAND[0]-} == starship_precmd && -n ${STARSHIP_CMD_STATUS-} ]]; then
+      status=$STARSHIP_CMD_STATUS
+    fi
+    if (( status != 0 )); then
+      printf '\a'
+    fi
+    return "$status"
+  }
+
+  if [[ ${PROMPT_COMMAND[0]-} != _kitty_bell_on_failure ]]; then
+    PROMPT_COMMAND=(_kitty_bell_on_failure "${PROMPT_COMMAND[@]}")
+  fi
+fi
 

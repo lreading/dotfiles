@@ -37,7 +37,20 @@ git clone https://github.com/LinuxBeginnings/Arch-Hyprland.git
 git clone https://github.com/LinuxBeginnings/Hyprland-Dots.git
 ```
 
-Run the upstream installers according to those repos. After the upstream config exists, check for conflicts, then install this user layer:
+Run the upstream installers according to those repos. On Arch, install the
+Kitty shake prerequisites and GNU Stow. The effect requires Kitty 0.49 or
+newer, Bash 5.1 or newer, and `slangc` from `shader-slang`.
+
+```bash
+sudo pacman -S --needed kitty bash shader-slang stow
+```
+
+Interactive Bash must source `~/.bash_aliases` from `~/.bashrc` so the managed
+failure hook runs. It should do this before Starship initialization if Starship
+is installed.
+
+After the upstream config exists, check for conflicts, then install this user
+layer:
 
 ```bash
 cd ~/dev/dotfiles
@@ -47,6 +60,8 @@ stow -nv work-laptop && stow work-laptop # Only on the work laptop.
 ```
 
 If Stow reports a conflict, inspect the live file before moving it. Do not use `--adopt` and `git restore` as a routine install step: they can hide changes.
+
+Open a new Kitty window and run `false` to check the shake.
 
 This user layer uses Hyprland's Lua configuration. If Hyprland-Dots installed
 the Lua entrypoint as `hyprland.lua.disable`, enable and verify it while keeping
